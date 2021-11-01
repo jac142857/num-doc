@@ -1,0 +1,217 @@
+ <div class="col-md-9" id="content">
+
+      <h2 id="ui-client-interface">UI Client interface</h2>
+
+<p>These data types are defined in the channel between clef and the UI</p>
+<h3 id="signdatarequest">SignDataRequest</h3>
+
+<p>SignDataRequest contains information about a pending request to sign some data. The data to be signed can be of various types, defined by content-type. Clef has done most of the work in canonicalizing and making sense of the data, and it’s up to the UI to present the user with the contents of the <code class="language-plaintext highlighter-rouge">message</code></p>
+
+<p>Example:</p>
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"content_type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"text/plain"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"address"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0xDEADbEeF000000000000000000000000DeaDbeEf"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"raw_data"</span><span class="p">:</span><span class="w"> </span><span class="s2">"GUV0aGVyZXVtIFNpZ25lZCBNZXNzYWdlOgoxMWhlbGxvIHdvcmxk"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"messages"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"message"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"value"</span><span class="p">:</span><span class="w"> </span><span class="s2">"</span><span class="se">\u</span><span class="s2">0019Ethereum Signed Message:</span><span class="se">\n</span><span class="s2">11hello world"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"text/plain"</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">],</span><span class="w">
+  </span><span class="nl">"hash"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0xd9eba16ed0ecae432b71fe008c98cc872bb4cc214d3220a36f365326cf807d68"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"meta"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"remote"</span><span class="p">:</span><span class="w"> </span><span class="s2">"localhost:9999"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"local"</span><span class="p">:</span><span class="w"> </span><span class="s2">"localhost:8545"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"scheme"</span><span class="p">:</span><span class="w"> </span><span class="s2">"http"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"User-Agent"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Firefox 3.2"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"Origin"</span><span class="p">:</span><span class="w"> </span><span class="s2">"www.malicious.ru"</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+<h3 id="signdataresponse---approve">SignDataResponse - approve</h3>
+
+<p>Response to SignDataRequest</p>
+
+<p>Example:</p>
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"approved"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+<h3 id="signdataresponse---deny">SignDataResponse - deny</h3>
+
+<p>Response to SignDataRequest</p>
+
+<p>Example:</p>
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"approved"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+<h3 id="signtxrequest">SignTxRequest</h3>
+
+<p>SignTxRequest contains information about a pending request to sign a transaction. Aside from the transaction itself, there is also a <code class="language-plaintext highlighter-rouge">call_info</code>-struct. That struct contains messages of various types, that the user should be informed of.</p>
+
+<p>As in any request, it’s important to consider that the <code class="language-plaintext highlighter-rouge">meta</code> info also contains untrusted data.</p>
+
+<p>The <code class="language-plaintext highlighter-rouge">transaction</code> (on input into clef) can have either <code class="language-plaintext highlighter-rouge">data</code> or <code class="language-plaintext highlighter-rouge">input</code> – if both are set, they must be identical, otherwise an error is generated. However, Clef will always use <code class="language-plaintext highlighter-rouge">data</code> when passing this struct on (if Clef does otherwise, please file a ticket)</p>
+
+<p>Example:</p>
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"transaction"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"from"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0xDEADbEeF000000000000000000000000DeaDbeEf"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"to"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"gas"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x3e8"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"gasPrice"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x5"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"value"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x6"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"nonce"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x1"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"data"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x01020304"</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="nl">"call_info"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Warning"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Something looks odd, show this message as a warning"</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Info"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"User should see this aswell"</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">],</span><span class="w">
+  </span><span class="nl">"meta"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"remote"</span><span class="p">:</span><span class="w"> </span><span class="s2">"localhost:9999"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"local"</span><span class="p">:</span><span class="w"> </span><span class="s2">"localhost:8545"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"scheme"</span><span class="p">:</span><span class="w"> </span><span class="s2">"http"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"User-Agent"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Firefox 3.2"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"Origin"</span><span class="p">:</span><span class="w"> </span><span class="s2">"www.malicious.ru"</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+<h3 id="signtxresponse---approve">SignTxResponse - approve</h3>
+
+<p>Response to request to sign a transaction. This response needs to contain the <code class="language-plaintext highlighter-rouge">transaction</code>, because the UI is free to make modifications to the transaction.</p>
+
+<p>Example:</p>
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"transaction"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"from"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0xDEADbEeF000000000000000000000000DeaDbeEf"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"to"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"gas"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x3e8"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"gasPrice"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x5"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"value"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x6"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"nonce"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x4"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"data"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x04030201"</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="nl">"approved"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+<h3 id="signtxresponse---deny">SignTxResponse - deny</h3>
+
+<p>Response to SignTxRequest. When denying a request, there’s no need to provide the transaction in return</p>
+
+<p>Example:</p>
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"transaction"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"from"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"to"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"gas"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x0"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"gasPrice"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x0"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"value"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x0"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"nonce"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x0"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"data"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="nl">"approved"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+<h3 id="onapproved---signtransactionresult">OnApproved - SignTransactionResult</h3>
+
+<p>SignTransactionResult is used in the call <code class="language-plaintext highlighter-rouge">clef</code> -&gt; <code class="language-plaintext highlighter-rouge">OnApprovedTx(result)</code></p>
+
+<p>This occurs <em>after</em> successful completion of the entire signing procedure, but right before the signed transaction is passed to the external caller. This method (and data) can be used by the UI to signal to the user that the transaction was signed, but it is primarily useful for ruleset implementations.</p>
+
+<p>A ruleset that implements a rate limitation needs to know what transactions are sent out to the external interface. By hooking into this methods, the ruleset can maintain track of that count.</p>
+
+<p><strong>OBS:</strong> Note that if an attacker can restore your <code class="language-plaintext highlighter-rouge">clef</code> data to a previous point in time (e.g through a backup), the attacker can reset such windows, even if he/she is unable to decrypt the content.</p>
+
+<p>The <code class="language-plaintext highlighter-rouge">OnApproved</code> method cannot be responded to, it’s purely informative</p>
+
+<p>Example:</p>
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"raw"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0xf85d640101948a8eafb1cf62bfbeb1741769dae1a9dd47996192018026a0716bd90515acb1e68e5ac5867aa11a1e65399c3349d479f5fb698554ebc6f293a04e8a4ebfff434e971e0ef12c5bf3a881b06fd04fc3f8b8a7291fb67a26a1d4ed"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"tx"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"nonce"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x64"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"gasPrice"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x1"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"gas"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x1"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"to"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x8a8eafb1cf62bfbeb1741769dae1a9dd47996192"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"value"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x1"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"input"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"v"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x26"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"r"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x716bd90515acb1e68e5ac5867aa11a1e65399c3349d479f5fb698554ebc6f293"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"s"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x4e8a4ebfff434e971e0ef12c5bf3a881b06fd04fc3f8b8a7291fb67a26a1d4ed"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"hash"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x662f6d772692dd692f1b5e8baa77a9ff95bbd909362df3fc3d301aafebde5441"</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+<h3 id="userinputrequest">UserInputRequest</h3>
+
+<p>Sent when clef needs the user to provide data. If ‘password’ is true, the input field should be treated accordingly (echo-free)</p>
+
+<p>Example:</p>
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"prompt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"The question to ask the user"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"The title here"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"isPassword"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+<h3 id="userinputresponse">UserInputResponse</h3>
+
+<p>Response to UserInputRequest</p>
+
+<p>Example:</p>
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"text"</span><span class="p">:</span><span class="w"> </span><span class="s2">"The textual response from user"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+<h3 id="listrequest">ListRequest</h3>
+
+<p>Sent when a request has been made to list addresses. The UI is provided with the full <code class="language-plaintext highlighter-rouge">account</code>s, including local directory names. Note: this information is not passed back to the external caller, who only sees the <code class="language-plaintext highlighter-rouge">address</code>es.</p>
+
+<p>Example:</p>
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"accounts"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"address"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0xdeadbeef000000000000000000000000deadbeef"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"url"</span><span class="p">:</span><span class="w"> </span><span class="s2">"keystore:///path/to/keyfile/a"</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"address"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x1111111122222222222233333333334444444444"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"url"</span><span class="p">:</span><span class="w"> </span><span class="s2">"keystore:///path/to/keyfile/b"</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">],</span><span class="w">
+  </span><span class="nl">"meta"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"remote"</span><span class="p">:</span><span class="w"> </span><span class="s2">"localhost:9999"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"local"</span><span class="p">:</span><span class="w"> </span><span class="s2">"localhost:8545"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"scheme"</span><span class="p">:</span><span class="w"> </span><span class="s2">"http"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"User-Agent"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Firefox 3.2"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"Origin"</span><span class="p">:</span><span class="w"> </span><span class="s2">"www.malicious.ru"</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+<h3 id="listresponse">ListResponse</h3>
+
+<p>Response to list request. The response contains a list of all addresses to show to the caller. Note: the UI is free to respond with any address the caller, regardless of whether it exists or not</p>
+
+<p>Example:</p>
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"accounts"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"address"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x0000000000000000000000000000000000000000"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"url"</span><span class="p">:</span><span class="w"> </span><span class="s2">".. ignored .."</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"address"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0xffffffffffffffffffffffffffffffffffffffff"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"url"</span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+    </div>

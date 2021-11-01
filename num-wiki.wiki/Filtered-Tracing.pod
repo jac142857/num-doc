@@ -1,0 +1,332 @@
+ <div class="col-md-9" id="content">
+      
+      <p>In the previous section you learned how to create a complete trace. However, those traces can include the complete status of the EVM at every point
+in the execution, which is huge. Usually you are only interested in a small subset of this information. To get it, you can specify a JavaScript filter.</p>
+
+<p><strong>Note:</strong> The JavaScript interpreter used by Geth is <a href="https://duktape.org/">duktape</a>, which is only up to the
+<a href="https://262.ecma-international.org/5.1/">ECMAScript 5.1 standard</a>. This means we cannot use <a href="https://www.w3schools.com/js/js_arrow_function.asp">arrow functions</a>
+and <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals">template literals</a>.</p>
+
+<h2 id="running-a-simple-trace">Running a Simple Trace</h2>
+
+<ol>
+  <li>
+    <p>Create a file, <code class="language-plaintext highlighter-rouge">filterTrace_1.js</code>, with this content:</p>
+
+    <div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="nx">tracer</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">tx</span><span class="p">)</span> <span class="p">{</span>
+   <span class="k">return</span> <span class="nx">debug</span><span class="p">.</span><span class="nx">traceTransaction</span><span class="p">(</span><span class="nx">tx</span><span class="p">,</span> <span class="p">{</span><span class="na">tracer</span><span class="p">:</span>
+      <span class="dl">'</span><span class="s1">{</span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">retVal: [],</span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">step: function(log,db) {this.retVal.push(log.getPC() + ":" + log.op.toString())},</span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">fault: function(log,db) {this.retVal.push("FAULT: " + JSON.stringify(log))},</span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">result: function(ctx,db) {return this.retVal}</span><span class="dl">'</span> <span class="o">+</span>
+      <span class="dl">'</span><span class="s1">}</span><span class="dl">'</span>
+   <span class="p">})</span> <span class="c1">// return debug.traceTransaction ...</span>
+<span class="p">}</span>   <span class="c1">// tracer = function ...</span>
+
+</code></pre></div>    </div>
+
+    <p>We could specify this function directly in the JavaScript console, but it would be unwieldy and difficult
+to edit.</p>
+  </li>
+  <li>Run the <a href="https://geth.ethereum.org/docs/interface/javascript-console">JavaScript console</a>.</li>
+  <li>Get the hash of a recent transaction. For example, if you use the Goerli network, you can get such a value
+<a href="https://goerli.etherscan.io/">here</a>.</li>
+  <li>
+    <p>Run this command to run the script:</p>
+
+    <div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">loadScript</span><span class="p">(</span><span class="dl">"</span><span class="s2">filterTrace_1.js</span><span class="dl">"</span><span class="p">)</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>Run the tracer from the script. Be patient, it could take a long time.</p>
+
+    <div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">tracer</span><span class="p">(</span><span class="dl">"</span><span class="s2">&lt;hash of transaction&gt;</span><span class="dl">"</span><span class="p">)</span>
+</code></pre></div>    </div>
+
+    <p>The bottom of the output looks similar to:</p>
+    <div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="s2">"3366:POP"</span><span class="err">,</span><span class="w"> </span><span class="s2">"3367:JUMP"</span><span class="err">,</span><span class="w"> </span><span class="s2">"1355:JUMPDEST"</span><span class="err">,</span><span class="w"> </span><span class="s2">"1356:PUSH1"</span><span class="err">,</span><span class="w"> </span><span class="s2">"1358:MLOAD"</span><span class="err">,</span><span class="w"> </span><span class="s2">"1359:DUP1"</span><span class="err">,</span><span class="w"> </span><span class="s2">"1360:DUP3"</span><span class="err">,</span><span class="w"> </span><span class="s2">"1361:ISZERO"</span><span class="err">,</span><span class="w"> </span><span class="s2">"1362:ISZERO"</span><span class="err">,</span><span class="w">
+</span><span class="s2">"1363:ISZERO"</span><span class="err">,</span><span class="w"> </span><span class="s2">"1364:ISZERO"</span><span class="err">,</span><span class="w"> </span><span class="s2">"1365:DUP2"</span><span class="err">,</span><span class="w"> </span><span class="s2">"1366:MSTORE"</span><span class="err">,</span><span class="w"> </span><span class="s2">"1367:PUSH1"</span><span class="err">,</span><span class="w"> </span><span class="s2">"1369:ADD"</span><span class="err">,</span><span class="w"> </span><span class="s2">"1370:SWAP2"</span><span class="err">,</span><span class="w"> </span><span class="s2">"1371:POP"</span><span class="err">,</span><span class="w"> </span><span class="s2">"1372:POP"</span><span class="err">,</span><span class="w"> </span><span class="s2">"1373:PUSH1"</span><span class="err">,</span><span class="w">
+</span><span class="s2">"1375:MLOAD"</span><span class="err">,</span><span class="w"> </span><span class="s2">"1376:DUP1"</span><span class="err">,</span><span class="w"> </span><span class="s2">"1377:SWAP2"</span><span class="err">,</span><span class="w"> </span><span class="s2">"1378:SUB"</span><span class="err">,</span><span class="w"> </span><span class="s2">"1379:SWAP1"</span><span class="err">,</span><span class="w"> </span><span class="s2">"1380:RETURN"</span><span class="p">]</span><span class="w">
+</span></code></pre></div>    </div>
+  </li>
+  <li>
+    <p>This output isn’t very readable. Run this line to get a more readable output with each string in its own line.</p>
+
+    <div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">tracer</span><span class="p">(</span><span class="dl">"</span><span class="s2">&lt;hash of transaction&gt;</span><span class="dl">"</span><span class="p">),</span> <span class="kc">null</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+</code></pre></div>    </div>
+
+    <p>You can read about the <code class="language-plaintext highlighter-rouge">JSON.stringify</code> function
+<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify">here</a>. If we just
+return the output we get <code class="language-plaintext highlighter-rouge">\n</code> for newlines, which is why we need to use <code class="language-plaintext highlighter-rouge">console.log</code>.</p>
+  </li>
+</ol>
+
+<h3 id="how-does-it-work">How Does It Work?</h3>
+
+<p>We call the same <code class="language-plaintext highlighter-rouge">debug.traceTransaction</code> function we use for <a href="https://geth.ethereum.org/docs/dapp/tracing">basic traces</a>, but
+with a new parameter, <code class="language-plaintext highlighter-rouge">tracer</code>. This parameter is a string that is the JavaScript object we use. In the case of the trace
+above, it is:</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span>
+   <span class="nl">retVal</span><span class="p">:</span> <span class="p">[],</span>
+   <span class="nx">step</span><span class="p">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">log</span><span class="p">,</span><span class="nx">db</span><span class="p">)</span> <span class="p">{</span><span class="k">this</span><span class="p">.</span><span class="nx">retVal</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">log</span><span class="p">.</span><span class="nx">getPC</span><span class="p">()</span> <span class="o">+</span> <span class="dl">"</span><span class="s2">:</span><span class="dl">"</span> <span class="o">+</span> <span class="nx">log</span><span class="p">.</span><span class="nx">op</span><span class="p">.</span><span class="nx">toString</span><span class="p">())},</span>
+   <span class="nx">fault</span><span class="p">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">log</span><span class="p">,</span><span class="nx">db</span><span class="p">)</span> <span class="p">{</span><span class="k">this</span><span class="p">.</span><span class="nx">retVal</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="dl">"</span><span class="s2">FAULT: </span><span class="dl">"</span> <span class="o">+</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">log</span><span class="p">))},</span>
+   <span class="nx">result</span><span class="p">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">ctx</span><span class="p">,</span><span class="nx">db</span><span class="p">)</span> <span class="p">{</span><span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">retVal</span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>This object has to have three member functions:</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">step</code>, called for each opcode</li>
+  <li><code class="language-plaintext highlighter-rouge">fault</code>, called if there is a problem in the execution</li>
+  <li><code class="language-plaintext highlighter-rouge">result</code>, called to produce the results that are returned by <code class="language-plaintext highlighter-rouge">debug.traceTransaction</code> after the execution is done</li>
+</ul>
+
+<p>It can have additional members. In this case, we use <code class="language-plaintext highlighter-rouge">retVal</code> to store the list of strings that we’ll return in <code class="language-plaintext highlighter-rouge">result</code>.</p>
+
+<p>The <code class="language-plaintext highlighter-rouge">step</code> function here adds to <code class="language-plaintext highlighter-rouge">retVal</code> the program counter and the name of the opcode there. Then, in <code class="language-plaintext highlighter-rouge">result</code>, we return this
+list to be sent to the caller.</p>
+
+<h2 id="actual-filtering">Actual Filtering</h2>
+
+<p>For actual filtered tracing we need an <code class="language-plaintext highlighter-rouge">if</code> statement to only log relevant information. For example, if we are interested in
+the transaction’s interaction with storage, we might use:</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">tracer</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">tx</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="nx">debug</span><span class="p">.</span><span class="nx">traceTransaction</span><span class="p">(</span><span class="nx">tx</span><span class="p">,</span> <span class="p">{</span><span class="na">tracer</span><span class="p">:</span>
+      <span class="dl">'</span><span class="s1">{</span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">retVal: [],</span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">step: function(log,db) {</span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">   if(log.op.toNumber() == 0x54) </span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">     this.retVal.push(log.getPC() + ": SLOAD");</span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">   if(log.op.toNumber() == 0x55) </span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">     this.retVal.push(log.getPC() + ": SSTORE");</span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">},</span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">fault: function(log,db) {this.retVal.push("FAULT: " + JSON.stringify(log))},</span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">result: function(ctx,db) {return this.retVal}</span><span class="dl">'</span> <span class="o">+</span>
+      <span class="dl">'</span><span class="s1">}</span><span class="dl">'</span>
+      <span class="p">})</span> <span class="c1">// return debug.traceTransaction ...</span>
+<span class="p">}</span>   <span class="c1">// tracer = function ...</span>
+</code></pre></div></div>
+
+<p>The <code class="language-plaintext highlighter-rouge">step</code> function here looks at the opcode number of the op, and only pushes an entry if the opcode is
+<code class="language-plaintext highlighter-rouge">SLOAD</code> or <code class="language-plaintext highlighter-rouge">SSTORE</code> (<a href="https://github.com/wolflo/evm-opcodes">here is a list of EVM opcodes and their numbers</a>).
+We could have used <code class="language-plaintext highlighter-rouge">log.op.toString()</code> instead, but it is faster to compare numbers rather than strings.</p>
+
+<p>The output looks similar to this:</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[</span>
+  <span class="dl">"</span><span class="s2">5921: SLOAD</span><span class="dl">"</span><span class="p">,</span>
+  <span class="p">.</span>
+  <span class="p">.</span>
+  <span class="p">.</span>
+  <span class="dl">"</span><span class="s2">2413: SSTORE</span><span class="dl">"</span><span class="p">,</span>
+  <span class="dl">"</span><span class="s2">2420: SLOAD</span><span class="dl">"</span><span class="p">,</span>
+  <span class="dl">"</span><span class="s2">2475: SSTORE</span><span class="dl">"</span><span class="p">,</span>
+  <span class="dl">"</span><span class="s2">6094: SSTORE</span><span class="dl">"</span>
+<span class="p">]</span>
+</code></pre></div></div>
+
+<h2 id="stack-information">Stack Information</h2>
+
+<p>The trace above tells us the program counter (PC) and whether the program read from storage or wrote to it. That
+isn’t very useful. To know more, you can use the <code class="language-plaintext highlighter-rouge">log.stack.peek</code> function to peek into the stack. <code class="language-plaintext highlighter-rouge">log.stack.peek(0)</code>
+is the stack top, <code class="language-plaintext highlighter-rouge">log.stack.peek(1)</code> the entry below it, etc. The values returned by <code class="language-plaintext highlighter-rouge">log.stack.peek</code> are
+Go <code class="language-plaintext highlighter-rouge">big.Int</code> objects. By default they are converted to JavaScript floating point numbers, so you need
+<code class="language-plaintext highlighter-rouge">toString(16)</code> to get them as hexadecimals, which is how we normally represent 256-bit values such as
+storage cells and their content.</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">tracer</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">tx</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="nx">debug</span><span class="p">.</span><span class="nx">traceTransaction</span><span class="p">(</span><span class="nx">tx</span><span class="p">,</span> <span class="p">{</span><span class="na">tracer</span><span class="p">:</span>
+      <span class="dl">'</span><span class="s1">{</span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">retVal: [],</span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">step: function(log,db) {</span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">   if(log.op.toNumber() == 0x54) </span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">     this.retVal.push(log.getPC() + ": SLOAD " + </span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">        log.stack.peek(0).toString(16));</span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">   if(log.op.toNumber() == 0x55) </span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">     this.retVal.push(log.getPC() + ": SSTORE " +</span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">        log.stack.peek(0).toString(16) + " &lt;- " +</span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">        log.stack.peek(1).toString(16));</span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">},</span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">fault: function(log,db) {this.retVal.push("FAULT: " + JSON.stringify(log))},</span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">result: function(ctx,db) {return this.retVal}</span><span class="dl">'</span> <span class="o">+</span>
+      <span class="dl">'</span><span class="s1">}</span><span class="dl">'</span>
+      <span class="p">})</span> <span class="c1">// return debug.traceTransaction ...</span>
+<span class="p">}</span>   <span class="c1">// tracer = function ...</span>
+
+</code></pre></div></div>
+
+<p>This function gives you a trace of all the storage operations, and show you their parameters. This gives
+you a more complete picture of the program’s interaction with storage. The output is similar to:</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[</span>
+  <span class="dl">"</span><span class="s2">5921: SLOAD 0</span><span class="dl">"</span><span class="p">,</span>
+  <span class="p">.</span>
+  <span class="p">.</span>
+  <span class="p">.</span>
+  <span class="dl">"</span><span class="s2">2413: SSTORE 3f0af0a7a3ed17f5ba6a93e0a2a05e766ed67bf82195d2dd15feead3749a575d &lt;- fb8629ad13d9a12456</span><span class="dl">"</span><span class="p">,</span>
+  <span class="dl">"</span><span class="s2">2420: SLOAD cc39b177dd3a7f50d4c09527584048378a692aed24d31d2eabeddb7f3c041870</span><span class="dl">"</span><span class="p">,</span>
+  <span class="dl">"</span><span class="s2">2475: SSTORE cc39b177dd3a7f50d4c09527584048378a692aed24d31d2eabeddb7f3c041870 &lt;- 358c3de691bd19</span><span class="dl">"</span><span class="p">,</span>
+  <span class="dl">"</span><span class="s2">6094: SSTORE 0 &lt;- 1</span><span class="dl">"</span>
+<span class="p">]</span>
+</code></pre></div></div>
+
+<h2 id="operation-results">Operation Results</h2>
+
+<p>One piece of information missing from the function above is the result on an <code class="language-plaintext highlighter-rouge">SLOAD</code> operation. The
+state we get inside <code class="language-plaintext highlighter-rouge">log</code> is the state prior to the execution of the opcode, so that value is not
+known yet. For more operations we can figure it out for ourselves, but we don’t have access to the
+storage, so here we can’t.</p>
+
+<p>The solution is to have a flag, <code class="language-plaintext highlighter-rouge">afterSload</code>, which is only true in the opcode right after an
+<code class="language-plaintext highlighter-rouge">SLOAD</code>, when we can see the result at the top of the stack.</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">tracer</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">tx</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="nx">debug</span><span class="p">.</span><span class="nx">traceTransaction</span><span class="p">(</span><span class="nx">tx</span><span class="p">,</span> <span class="p">{</span><span class="na">tracer</span><span class="p">:</span>
+      <span class="dl">'</span><span class="s1">{</span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">retVal: [],</span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">afterSload: false,</span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">step: function(log,db) {</span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">   if(this.afterSload) {</span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">     this.retVal.push("    Result: " + </span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">          log.stack.peek(0).toString(16)); </span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">     this.afterSload = false; </span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">   } </span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">   if(log.op.toNumber() == 0x54) {</span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">     this.retVal.push(log.getPC() + ": SLOAD " + </span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">        log.stack.peek(0).toString(16));</span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">        this.afterSload = true; </span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">   } </span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">   if(log.op.toNumber() == 0x55) </span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">     this.retVal.push(log.getPC() + ": SSTORE " +</span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">        log.stack.peek(0).toString(16) + " &lt;- " +</span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">        log.stack.peek(1).toString(16));</span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">},</span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">fault: function(log,db) {this.retVal.push("FAULT: " + JSON.stringify(log))},</span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">result: function(ctx,db) {return this.retVal}</span><span class="dl">'</span> <span class="o">+</span>
+      <span class="dl">'</span><span class="s1">}</span><span class="dl">'</span>
+      <span class="p">})</span> <span class="c1">// return debug.traceTransaction ...</span>
+<span class="p">}</span>   <span class="c1">// tracer = function ...</span>
+</code></pre></div></div>
+
+<p>The output now contains the result in the line that follows the <code class="language-plaintext highlighter-rouge">SLOAD</code>. We could have also modified the <code class="language-plaintext highlighter-rouge">SLOAD</code>
+line itself, but that would have been a bit more work.</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[</span>
+  <span class="dl">"</span><span class="s2">5921: SLOAD 0</span><span class="dl">"</span><span class="p">,</span>
+  <span class="dl">"</span><span class="s2">    Result: 1</span><span class="dl">"</span><span class="p">,</span>
+  <span class="p">.</span>
+  <span class="p">.</span>
+  <span class="p">.</span>
+  <span class="dl">"</span><span class="s2">2413: SSTORE 3f0af0a7a3ed17f5ba6a93e0a2a05e766ed67bf82195d2dd15feead3749a575d &lt;- fb8629ad13d9a12456</span><span class="dl">"</span><span class="p">,</span>
+  <span class="dl">"</span><span class="s2">2420: SLOAD cc39b177dd3a7f50d4c09527584048378a692aed24d31d2eabeddb7f3c041870</span><span class="dl">"</span><span class="p">,</span>
+  <span class="dl">"</span><span class="s2">    Result: 0</span><span class="dl">"</span><span class="p">,</span>
+  <span class="dl">"</span><span class="s2">2475: SSTORE cc39b177dd3a7f50d4c09527584048378a692aed24d31d2eabeddb7f3c041870 &lt;- 358c3de691bd19</span><span class="dl">"</span><span class="p">,</span>
+  <span class="dl">"</span><span class="s2">6094: SSTORE 0 &lt;- 1</span><span class="dl">"</span>
+<span class="p">]</span>
+</code></pre></div></div>
+
+<h2 id="dealing-with-calls-between-contracts">Dealing With Calls Between Contracts</h2>
+
+<p>So far we have treated the storage as if there are only 2^256 cells. However, that is not true. Contracts
+can call other contracts, and then the storage involved is the storage of the other contract. We can see
+the address of the current contract in <code class="language-plaintext highlighter-rouge">log.contract.getAddress()</code>. This value is the execution context,
+the contract whose storage we are using, even when we use code from another contract (by using
+<code class="language-plaintext highlighter-rouge">CALLCODE</code> or <code class="language-plaintext highlighter-rouge">DELEGATECODE</code>).</p>
+
+<p>However, <code class="language-plaintext highlighter-rouge">log.contract.getAddress()</code> returns an array of bytes. We use <code class="language-plaintext highlighter-rouge">this.byteHex()</code> and <code class="language-plaintext highlighter-rouge">array2Hex()</code>
+to convert this array to the hexadecimal representation we usually use to identify contracts.</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">tracer</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">tx</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="nx">debug</span><span class="p">.</span><span class="nx">traceTransaction</span><span class="p">(</span><span class="nx">tx</span><span class="p">,</span> <span class="p">{</span><span class="na">tracer</span><span class="p">:</span>
+      <span class="dl">'</span><span class="s1">{</span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">retVal: [],</span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">afterSload: false,</span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">callStack: [],</span><span class="dl">'</span> <span class="o">+</span>
+
+         <span class="dl">'</span><span class="s1">byte2Hex: function(byte) {</span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">  if (byte &lt; 0x10) </span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">      return "0" + byte.toString(16); </span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">  return byte.toString(16); </span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">},</span><span class="dl">'</span> <span class="o">+</span>
+
+         <span class="dl">'</span><span class="s1">array2Hex: function(arr) {</span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">  var retVal = ""; </span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">  for (var i=0; i&lt;arr.length; i++) </span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">    retVal += this.byte2Hex(arr[i]); </span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">  return retVal; </span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">}, </span><span class="dl">'</span> <span class="o">+</span>
+
+         <span class="dl">'</span><span class="s1">getAddr: function(log) {</span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">  return this.array2Hex(log.contract.getAddress());</span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">}, </span><span class="dl">'</span> <span class="o">+</span>
+
+         <span class="dl">'</span><span class="s1">step: function(log,db) {</span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">   var opcode = log.op.toNumber();</span><span class="dl">'</span> <span class="o">+</span>
+
+         <span class="c1">// SLOAD</span>
+         <span class="dl">'</span><span class="s1">   if (opcode == 0x54) {</span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">     this.retVal.push(log.getPC() + ": SLOAD " + </span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">        this.getAddr(log) + ":" + </span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">        log.stack.peek(0).toString(16));</span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">        this.afterSload = true; </span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">   } </span><span class="dl">'</span> <span class="o">+</span>
+
+         <span class="c1">// SLOAD Result</span>
+         <span class="dl">'</span><span class="s1">   if (this.afterSload) {</span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">     this.retVal.push("    Result: " + </span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">          log.stack.peek(0).toString(16)); </span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">     this.afterSload = false; </span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">   } </span><span class="dl">'</span> <span class="o">+</span>
+
+         <span class="c1">// SSTORE</span>
+         <span class="dl">'</span><span class="s1">   if (opcode == 0x55) </span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">     this.retVal.push(log.getPC() + ": SSTORE " +</span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">        this.getAddr(log) + ":" + </span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">        log.stack.peek(0).toString(16) + " &lt;- " +</span><span class="dl">'</span> <span class="o">+</span>
+         <span class="dl">'</span><span class="s1">        log.stack.peek(1).toString(16));</span><span class="dl">'</span> <span class="o">+</span>
+
+         <span class="c1">// End of step</span>
+         <span class="dl">'</span><span class="s1">},</span><span class="dl">'</span> <span class="o">+</span>
+
+         <span class="dl">'</span><span class="s1">fault: function(log,db) {this.retVal.push("FAULT: " + JSON.stringify(log))},</span><span class="dl">'</span> <span class="o">+</span>
+
+         <span class="dl">'</span><span class="s1">result: function(ctx,db) {return this.retVal}</span><span class="dl">'</span> <span class="o">+</span>
+      <span class="dl">'</span><span class="s1">}</span><span class="dl">'</span>
+      <span class="p">})</span> <span class="c1">// return debug.traceTransaction ...</span>
+<span class="p">}</span>   <span class="c1">// tracer = function ...</span>
+</code></pre></div></div>
+
+<p>The output is similar to:</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[</span>
+  <span class="dl">"</span><span class="s2">423: SLOAD 22ff293e14f1ec3a09b137e9e06084afd63addf9:360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc</span><span class="dl">"</span><span class="p">,</span>
+  <span class="dl">"</span><span class="s2">    Result: 360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc</span><span class="dl">"</span><span class="p">,</span>
+  <span class="dl">"</span><span class="s2">10778: SLOAD 22ff293e14f1ec3a09b137e9e06084afd63addf9:6</span><span class="dl">"</span><span class="p">,</span>
+  <span class="dl">"</span><span class="s2">    Result: 6</span><span class="dl">"</span><span class="p">,</span>
+  <span class="p">.</span>
+  <span class="p">.</span>
+  <span class="p">.</span>
+  <span class="dl">"</span><span class="s2">13529: SLOAD f2d68898557ccb2cf4c10c3ef2b034b2a69dad00:8328de571f86baa080836c50543c740196dbc109d42041802573ba9a13efa340</span><span class="dl">"</span><span class="p">,</span>
+  <span class="dl">"</span><span class="s2">    Result: 8328de571f86baa080836c50543c740196dbc109d42041802573ba9a13efa340</span><span class="dl">"</span><span class="p">,</span>
+  <span class="dl">"</span><span class="s2">423: SLOAD f2d68898557ccb2cf4c10c3ef2b034b2a69dad00:360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc</span><span class="dl">"</span><span class="p">,</span>
+  <span class="dl">"</span><span class="s2">    Result: 360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc</span><span class="dl">"</span><span class="p">,</span>
+  <span class="dl">"</span><span class="s2">13529: SLOAD f2d68898557ccb2cf4c10c3ef2b034b2a69dad00:b38558064d8dd9c883d2a8c80c604667ddb90a324bc70b1bac4e70d90b148ed4</span><span class="dl">"</span><span class="p">,</span>
+  <span class="dl">"</span><span class="s2">    Result: b38558064d8dd9c883d2a8c80c604667ddb90a324bc70b1bac4e70d90b148ed4</span><span class="dl">"</span><span class="p">,</span>
+  <span class="dl">"</span><span class="s2">11041: SSTORE 22ff293e14f1ec3a09b137e9e06084afd63addf9:6 &lt;- 0</span><span class="dl">"</span>
+<span class="p">]</span>
+</code></pre></div></div>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>This tutorial only taught the basics of using JavaScript to filter traces. We did not go over access to memory,
+or how to use the <code class="language-plaintext highlighter-rouge">db</code> parameter to know the state of the chain at the time of execution. All this and more is
+covered <a href="https://geth.ethereum.org/docs/rpc/ns-debug#javascript-based-tracing">in the reference</a>.</p>
+
+<p>Hopefully with this tool you will find it easier to trace the EVM’s behavior and debug thorny contract issues.</p>
+
+    </div>

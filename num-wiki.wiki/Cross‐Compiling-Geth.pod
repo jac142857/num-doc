@@ -1,0 +1,180 @@
+  <div class="col-md-9" id="content">
+
+      
+      <p><strong>Note: All of these and much more have been merged into the project Makefile. You can
+cross build via <code class="language-plaintext highlighter-rouge">make geth-&lt;os&gt;-&lt;platform&gt;</code> without needing to know any of these details
+from below.</strong></p>
+
+<p>Developers usually have a preferred platform that they feel most comfortable working in,
+with all the necessary tools, libraries and environments set up for an optimal workflow.
+However, there’s often need to build for either a different CPU architecture, or an
+entirely different operating system; but maintaining a development environment for each
+and switching between the them quickly becomes unwieldy.</p>
+
+<p>Here we present a very simple way to cross compile Ethereum to various operating systems
+and architectures using a minimal set of prerequisites and a completely containerized
+approach, guaranteeing that your development environment remains clean even after the
+complex requirements and mechanisms of a cross compilation.</p>
+
+<p>The currently supported target platforms are:</p>
+
+<ul>
+  <li>ARMv7 Android and iOS</li>
+  <li>32 bit, 64 bit and ARMv5 Linux</li>
+  <li>32 bit and 64 bit Mac OSX</li>
+  <li>32 bit and 64 bit Windows</li>
+</ul>
+
+<p>Please note, that cross compilation does not replace a release build. Although resulting
+binaries can usually run perfectly on the desired platform, compiling on a native system
+with the specialized tools provided by the official vendor can often result in more a
+finely optimized code.</p>
+
+<h2 id="cross-compilation-environment">Cross compilation environment</h2>
+
+<p>Although the <code class="language-plaintext highlighter-rouge">go-ethereum</code> project is written in Go, it does include a bit of C code
+shared between all implementations to ensure that all perform equally well, including a
+dependency to the GNU Multiple Precision Arithmetic Library. Because of these, Go cannot
+by itself compile to a different platform than the host. To overcome this limitation, we
+will use <a href="https://github.com/karalabe/xgo"><code class="language-plaintext highlighter-rouge">xgo</code></a>, a Go cross compiler package based on
+Docker containers that has been architected specifically to allow both embedded C snippets
+as well as simpler external C dependencies during compilation.</p>
+
+<p>The <code class="language-plaintext highlighter-rouge">xgo</code> project has two simple dependencies: Docker (to ensure that the build
+environment is completely contained) and Go. On most platforms these should be available
+from the official package repositories. For manually installing them, please consult their
+install guides at <a href="https://docs.docker.com/installation/">Docker</a> and
+<a href="https://golang.org/doc/install">Go</a> respectively. This guide assumes that these two
+dependencies are met.</p>
+
+<p>To install and/or update xgo, simply type:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ go get -u github.com/karalabe/xgo
+</code></pre></div></div>
+
+<p>You can test whether <code class="language-plaintext highlighter-rouge">xgo</code> is functioning correctly by requesting it to cross
+compile itself and verifying that all cross compilations succeeded or not.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ xgo github.com/karalabe/xgo
+...
+
+$ ls -al
+-rwxr-xr-x  1 root     root      2792436 Sep 14 16:45 xgo-android-21-arm
+-rwxr-xr-x  1 root     root      2353212 Sep 14 16:45 xgo-darwin-386
+-rwxr-xr-x  1 root     root      2906128 Sep 14 16:45 xgo-darwin-amd64
+-rwxr-xr-x  1 root     root      2388288 Sep 14 16:45 xgo-linux-386
+-rwxr-xr-x  1 root     root      2960560 Sep 14 16:45 xgo-linux-amd64
+-rwxr-xr-x  1 root     root      2437864 Sep 14 16:45 xgo-linux-arm
+-rwxr-xr-x  1 root     root      2551808 Sep 14 16:45 xgo-windows-386.exe
+-rwxr-xr-x  1 root     root      3130368 Sep 14 16:45 xgo-windows-amd64.exe
+</code></pre></div></div>
+
+<h2 id="building-ethereum">Building Ethereum</h2>
+
+<p>Cross compiling Ethereum is analogous to the above example, but an additional flags is
+required to satisfy the dependencies:</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">--deps</code> is used to inject arbitrary C dependency packages and pre-build them</li>
+</ul>
+
+<p>Injecting the GNU Arithmetic Library dependency and selecting <code class="language-plaintext highlighter-rouge">geth</code> would be:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ xgo --deps=https://gmplib.org/download/gmp/gmp-6.0.0a.tar.bz2 \
+      github.com/ethereum/go-ethereum/cmd/geth
+...
+
+$ ls -al
+-rwxr-xr-x  1 root     root     23213372 Sep 14 17:59 geth-android-21-arm
+-rwxr-xr-x  1 root     root     14373980 Sep 14 17:59 geth-darwin-386
+-rwxr-xr-x  1 root     root     17373676 Sep 14 17:59 geth-darwin-amd64
+-rwxr-xr-x  1 root     root     21098910 Sep 14 17:59 geth-linux-386
+-rwxr-xr-x  1 root     root     25049693 Sep 14 17:59 geth-linux-amd64
+-rwxr-xr-x  1 root     root     20578535 Sep 14 17:59 geth-linux-arm
+-rwxr-xr-x  1 root     root     16351260 Sep 14 17:59 geth-windows-386.exe
+-rwxr-xr-x  1 root     root     19418071 Sep 14 17:59 geth-windows-amd64.exe
+</code></pre></div></div>
+
+<p>As the cross compiler needs to build all the dependencies as well as the main project
+itself for each platform, it may take a while for the build to complete (approximately 3-4
+minutes on a Core i7 3770K machine).</p>
+
+<h3 id="fine-tuning-the-build">Fine tuning the build</h3>
+
+<p>By default Go, and inherently <code class="language-plaintext highlighter-rouge">xgo</code>, checks out and tries to build the master branch of a
+source repository. However, more often than not, you’ll probably want to build a different
+branch from possibly an entirely different remote repository. These can be controlled via
+the <code class="language-plaintext highlighter-rouge">--remote</code> and <code class="language-plaintext highlighter-rouge">--branch</code> flags.</p>
+
+<p>To build the <code class="language-plaintext highlighter-rouge">develop</code> branch of the official <code class="language-plaintext highlighter-rouge">go-ethereum</code> repository instead of the
+default <code class="language-plaintext highlighter-rouge">master</code> branch, you just need to specify it as an additional command line flag
+(<code class="language-plaintext highlighter-rouge">--branch</code>):</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ xgo --deps=https://gmplib.org/download/gmp/gmp-6.0.0a.tar.bz2 \
+      --branch=develop                                          \
+      github.com/ethereum/go-ethereum/cmd/geth
+</code></pre></div></div>
+
+<p>Additionally, during development you will most probably want to not only build a custom
+branch, but also one originating from your own fork of the repository instead of the
+upstream one. This can be done via the <code class="language-plaintext highlighter-rouge">--remote</code> flag:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ xgo --deps=https://gmplib.org/download/gmp/gmp-6.0.0a.tar.bz2 \
+      --remote=https://github.com/karalabe/go-ethereum          \
+      --branch=rpi-staging                                      \
+      github.com/ethereum/go-ethereum/cmd/geth
+</code></pre></div></div>
+
+<p>By default <code class="language-plaintext highlighter-rouge">xgo</code> builds binaries for all supported platforms and architectures, with
+Android binaries defaulting to the highest released Android NDK platform. To limit the
+build targets or compile to a different Android platform, use the <code class="language-plaintext highlighter-rouge">--targets</code> CLI
+parameter.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ xgo --deps=https://gmplib.org/download/gmp/gmp-6.0.0a.tar.bz2 \
+      --targets=android-16/arm,windows/*                        \
+      github.com/ethereum/go-ethereum/cmd/geth
+</code></pre></div></div>
+
+<h3 id="building-locally">Building locally</h3>
+
+<p>If you would like to cross compile your local development version, simply specify a local
+path (starting with <code class="language-plaintext highlighter-rouge">.</code> or <code class="language-plaintext highlighter-rouge">/</code>), and <code class="language-plaintext highlighter-rouge">xgo</code> will use all local code from <code class="language-plaintext highlighter-rouge">GOPATH</code>, only
+downloading missing dependencies. In such a case of course, the <code class="language-plaintext highlighter-rouge">--branch</code>, <code class="language-plaintext highlighter-rouge">--remote</code> and
+<code class="language-plaintext highlighter-rouge">--pkg</code> arguments are no-op:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ xgo --deps=https://gmplib.org/download/gmp/gmp-6.0.0a.tar.bz2 \
+      ./cmd/geth
+</code></pre></div></div>
+
+<h2 id="using-the-makefile">Using the Makefile</h2>
+
+<p>Having understood the gist of <code class="language-plaintext highlighter-rouge">xgo</code> based cross compilation, you do not need to actually
+memorize and maintain these commands, as they have been incorporated into the official
+<a href="https://github.com/ethereum/go-ethereum/blob/master/Makefile">Makefile</a> and can be
+invoked with a trivial <code class="language-plaintext highlighter-rouge">make</code> request:</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">make geth-cross</code>: Cross compiles to every supported OS and architecture</li>
+  <li><code class="language-plaintext highlighter-rouge">make geth-&lt;os&gt;</code>: Cross compiles supported architectures of a particular OS (e.g. <code class="language-plaintext highlighter-rouge">linux</code>)</li>
+  <li><code class="language-plaintext highlighter-rouge">make geth-&lt;os&gt;-&lt;arch&gt;</code>: Cross compiles to a specific OS/architecture (e.g. <code class="language-plaintext highlighter-rouge">linux</code>, <code class="language-plaintext highlighter-rouge">arm</code>)</li>
+</ul>
+
+<p>We advise using the <code class="language-plaintext highlighter-rouge">make</code> based commands opposed to manually invoking <code class="language-plaintext highlighter-rouge">xgo</code> as we do
+maintain the Makefile actively whereas we cannot guarantee that this document will be
+always readily updated to latest advancements.</p>
+
+<h3 id="tuning-the-cross-builds">Tuning the cross builds</h3>
+
+<p>A few of the <code class="language-plaintext highlighter-rouge">xgo</code> build options have also been surfaced directly into the Makefile to
+allow fine tuning builds to work around either upstream Go issues, or to enable some
+fancier mechanics.</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">make ... GO=&lt;go&gt;</code>: Use a specific Go runtime (e.g. <code class="language-plaintext highlighter-rouge">1.5.1</code>, <code class="language-plaintext highlighter-rouge">1.5-develop</code>, <code class="language-plaintext highlighter-rouge">develop</code>)</li>
+  <li><code class="language-plaintext highlighter-rouge">make ... MODE=&lt;mode&gt;</code>: Build a specific target type (e.g. <code class="language-plaintext highlighter-rouge">exe</code>, <code class="language-plaintext highlighter-rouge">c-archive</code>).</li>
+</ul>
+
+<p>Please note that these are not yet fully finalized, so they may or may not change in the
+future as our code and the Go runtime features change.</p>
+
+    </div>

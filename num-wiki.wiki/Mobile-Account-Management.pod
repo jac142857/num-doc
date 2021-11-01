@@ -1,0 +1,315 @@
+ <div class="col-md-9" id="content">
+      
+      
+      <p>To provide Ethereum integration for your mobile applications, the very first thing you
+should be interested in doing is account management.</p>
+
+<p>Although all current leading Ethereum implementations provide account management built in,
+it is ill advised to keep accounts in any location that is shared between multiple
+applications and/or multiple people. The same way you do not entrust your ISP (who is
+after all your gateway into the internet) with your login credentials; you should not
+entrust an Ethereum node (who is your gateway into the Ethereum network) with your
+credentials either.</p>
+
+<p>The proper way to handle user accounts in your mobile applications is to do client side
+account management, everything self-contained within your own application. This way you
+can ensure as fine grained (or as coarse) access permissions to the sensitive data as
+deemed necessary, without relying on any third party application’s functionality and/or
+vulnerabilities.</p>
+
+<p>To support this, <code class="language-plaintext highlighter-rouge">go-ethereum</code> provides a simple, yet thorough accounts library that gives
+you all the tools to do properly secured account management via encrypted keystores and
+passphrase protected accounts. You can leverage all the security of the <code class="language-plaintext highlighter-rouge">go-ethereum</code>
+crypto implementation while at the same time running everything in your own application.</p>
+
+<h2 id="encrypted-keystores">Encrypted keystores</h2>
+
+<p>Although handling your users’ accounts locally on their own mobile device does provide
+certain security guarantees, access keys to Ethereum accounts should never lay around in
+clear-text form. As such, we provide an encrypted keystore that provides the proper
+security guarantees for you without requiring a thorough understanding from your part of
+the associated cryptographic primitives.</p>
+
+<p>The important thing to know when using the encrypted keystore is that the cryptographic
+primitives used within can operate either in <em>standard</em> or <em>light</em> mode. The former
+provides a higher level of security at the cost of increased computational burden and
+resource consumption:</p>
+
+<ul>
+  <li><em>standard</em> needs 256MB memory and 1 second processing on a modern CPU to access a key</li>
+  <li><em>light</em> needs 4MB memory and 100 millisecond processing on a modern CPU to access a key</li>
+</ul>
+
+<p>As such, <em>light</em> is more suitable for mobile applications, but you should be aware of the
+trade-offs nonetheless.</p>
+
+<p><em>For those interested in the cryptographic and/or implementation details, the key-store
+uses the <code class="language-plaintext highlighter-rouge">secp256k1</code> elliptic curve as defined in the <a href="https://geth.ethereum.org/docs/dapp/sec2">Standards for Efficient
+Cryptography</a>, implemented by the <a href="https://github.com/bitcoin-core/secp256k1"><code class="language-plaintext highlighter-rouge">libsecp256k</code></a> library and wrapped by
+<a href="https://godoc.org/github.com/ethereum/go-ethereum/accounts"><code class="language-plaintext highlighter-rouge">github.com/ethereum/go-ethereum/accounts</code></a>. Accounts are stored on disk in
+the <a href="https://github.com/ethereum/wiki/wiki/Web3-Secret-Storage-Definition">Web3 Secret Storage</a> format.</em></p>
+
+<h3 id="keystores-on-android-java">Keystores on Android (Java)</h3>
+
+<p>The encrypted keystore on Android is implemented by the <code class="language-plaintext highlighter-rouge">KeyStore</code> class from the
+<code class="language-plaintext highlighter-rouge">org.ethereum.geth</code> package. The configuration constants (for the <em>standard</em> or <em>light</em>
+security modes described above) are located in the <code class="language-plaintext highlighter-rouge">Geth</code> abstract class, similarly from
+the <code class="language-plaintext highlighter-rouge">org.ethereum.geth</code> package. Hence to do client side account management on Android,
+you’ll need to import two classes into your Java code:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">org.ethereum.geth.Geth</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">org.ethereum.geth.KeyStore</span><span class="o">;</span>
+</code></pre></div></div>
+
+<p>Afterwards you can create a new encrypted keystore via:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nc">KeyStore</span> <span class="n">ks</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">KeyStore</span><span class="o">(</span><span class="s">"/path/to/keystore"</span><span class="o">,</span> <span class="nc">Geth</span><span class="o">.</span><span class="na">LightScryptN</span><span class="o">,</span> <span class="nc">Geth</span><span class="o">.</span><span class="na">LightScryptP</span><span class="o">);</span>
+</code></pre></div></div>
+
+<p>The path to the keystore folder needs to be a location that is writable by the local
+mobile application but non-readable for other installed applications (for security reasons
+obviously), so we’d recommend placing it inside your app’s data directory. If you are
+creating the <code class="language-plaintext highlighter-rouge">KeyStore</code> from within a class extending an Android object, you will most
+probably have access to the <code class="language-plaintext highlighter-rouge">Context.getFilesDir()</code> method via <code class="language-plaintext highlighter-rouge">this.getFilesDir()</code>, so
+you could set the keystore path to <code class="language-plaintext highlighter-rouge">this.getFilesDir() + "/keystore"</code>.</p>
+
+<p>The last two arguments of the <code class="language-plaintext highlighter-rouge">KeyStore</code> constructor are the crypto parameters defining
+how resource-intensive the keystore encryption should be. You can choose between
+<code class="language-plaintext highlighter-rouge">Geth.StandardScryptN, Geth.StandardScryptP</code>, <code class="language-plaintext highlighter-rouge">Geth.LightScryptN, Geth.LightScryptP</code> or
+specify your own numbers (please make sure you understand the underlying cryptography for
+this). We recommend using the <em>light</em> version.</p>
+
+<h3 id="keystores-on-ios-swift-3">Keystores on iOS (Swift 3)</h3>
+
+<p>The encrypted keystore on iOS is implemented by the <code class="language-plaintext highlighter-rouge">GethKeyStore</code> class from the <code class="language-plaintext highlighter-rouge">Geth</code>
+framework. The configuration constants (for the <em>standard</em> or <em>light</em> security modes
+described above) are located in the same namespace as global variables. Hence to do client
+side account management on iOS, you’ll need to import the framework into your Swift code:</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">import</span> <span class="kt">Geth</span>
+</code></pre></div></div>
+
+<p>Afterwards you can create a new encrypted account manager via:</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">let</span> <span class="nv">ks</span> <span class="o">=</span> <span class="kt">GethNewKeyStore</span><span class="p">(</span><span class="s">"/path/to/keystore"</span><span class="p">,</span> <span class="kt">GethLightScryptN</span><span class="p">,</span> <span class="kt">GethLightScryptP</span><span class="p">);</span>
+</code></pre></div></div>
+
+<p>The path to the keystore folder needs to be a location that is writable by the local
+mobile application but non-readable for other installed applications (for security reasons
+obviously), so we’d recommend placing it inside your app’s document directory. You should
+be able to retrieve the document directory via <code class="language-plaintext highlighter-rouge">let datadir =
+NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0]</code>, so you
+could set the keystore path to <code class="language-plaintext highlighter-rouge">datadir + "/keystore"</code>.</p>
+
+<p>The last two arguments of the <code class="language-plaintext highlighter-rouge">GethNewKeyStore</code> factory method are the crypto parameters
+defining how resource-intensive the keystore encryption should be. You can choose between
+<code class="language-plaintext highlighter-rouge">GethStandardScryptN, GethStandardScryptP</code>, <code class="language-plaintext highlighter-rouge">GethLightScryptN, GethLightScryptP</code> or
+specify your own numbers (please make sure you understand the underlying cryptography for
+this). We recommend using the <em>light</em> version.</p>
+
+<h2 id="account-lifecycle">Account lifecycle</h2>
+
+<p>Having created an encrypted keystore for your Ethereum accounts, you can use this for the
+entire account lifecycle requirements of your mobile application. This includes the basic
+functionality of creating new accounts and deleting existing ones; as well as the more
+advanced functionality of updating access credentials, exporting existing accounts, and
+importing them on another device.</p>
+
+<p>Although the keystore defines the encryption strength it uses to store your accounts,
+there is no global master password that can grant access to all of them. Rather each
+account is maintained individually, and stored on disk in its <a href="https://github.com/ethereum/wiki/wiki/Web3-Secret-Storage-Definition">encrypted format</a>
+individually, ensuring a much cleaner and stricter separation of credentials.</p>
+
+<p>This individuality however means that any operation requiring access to an account will
+need to provide the necessary authentication credentials for that particular account in
+the form of a passphrase:</p>
+
+<ul>
+  <li>When creating a new account, the caller must supply a passphrase to encrypt the account
+with. This passphrase will be required for any subsequent access, the lack of which
+will forever forfeit using the newly created account.</li>
+  <li>When deleting an existing account, the caller must supply a passphrase to verify
+ownership of the account. This isn’t cryptographically necessary, rather a protective
+measure against accidental loss of accounts.</li>
+  <li>When updating an existing account, the caller must supply both current and new
+passphrases. After completing the operation, the account will not be accessible via the
+old passphrase any more.</li>
+  <li>When exporting an existing account, the caller must supply both the current passphrase
+to decrypt the account, as well as an export passphrase to re-encrypt it with before
+returning the key-file to the user. This is required to allow moving accounts between
+devices without sharing original credentials.</li>
+  <li>When importing a new account, the caller must supply both the encryption passphrase of
+the key-file being imported, as well as a new passhprase with which to store the
+account. This is required to allow storing account with different credentials than used
+for moving them around.</li>
+</ul>
+
+<p><em>Please note, there is no recovery mechanisms for losing the passphrases. The
+cryptographic properties of the encrypted keystore (if using the provided parameters)
+guarantee that account credentials cannot be brute forced in any meaningful time.</em></p>
+
+<h3 id="accounts-on-android-java">Accounts on Android (Java)</h3>
+
+<p>An Ethereum account on Android is implemented by the <code class="language-plaintext highlighter-rouge">Account</code> class from the
+<code class="language-plaintext highlighter-rouge">org.ethereum.geth</code> package. Assuming we already have an instance of a <code class="language-plaintext highlighter-rouge">KeyStore</code> called
+<code class="language-plaintext highlighter-rouge">ks</code> from the previous section, we can easily execute all of the described lifecycle
+operations with a handful of function calls.</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// Create a new account with the specified encryption passphrase.</span>
+<span class="nc">Account</span> <span class="n">newAcc</span> <span class="o">=</span> <span class="n">ksm</span><span class="o">.</span><span class="na">newAccount</span><span class="o">(</span><span class="s">"Creation password"</span><span class="o">);</span>
+
+<span class="c1">// Export the newly created account with a different passphrase. The returned</span>
+<span class="c1">// data from this method invocation is a JSON encoded, encrypted key-file.</span>
+<span class="kt">byte</span><span class="o">[]</span> <span class="n">jsonAcc</span> <span class="o">=</span> <span class="n">ks</span><span class="o">.</span><span class="na">exportKey</span><span class="o">(</span><span class="n">newAcc</span><span class="o">,</span> <span class="s">"Creation password"</span><span class="o">,</span> <span class="s">"Export password"</span><span class="o">);</span>
+
+<span class="c1">// Update the passphrase on the account created above inside the local keystore.</span>
+<span class="n">ks</span><span class="o">.</span><span class="na">updateAccount</span><span class="o">(</span><span class="n">newAcc</span><span class="o">,</span> <span class="s">"Creation password"</span><span class="o">,</span> <span class="s">"Update password"</span><span class="o">);</span>
+
+<span class="c1">// Delete the account updated above from the local keystore.</span>
+<span class="n">ks</span><span class="o">.</span><span class="na">deleteAccount</span><span class="o">(</span><span class="n">newAcc</span><span class="o">,</span> <span class="s">"Update password"</span><span class="o">);</span>
+
+<span class="c1">// Import back the account we've exported (and then deleted) above with yet</span>
+<span class="c1">// again a fresh passphrase.</span>
+<span class="nc">Account</span> <span class="n">impAcc</span> <span class="o">=</span> <span class="n">ks</span><span class="o">.</span><span class="na">importKey</span><span class="o">(</span><span class="n">jsonAcc</span><span class="o">,</span> <span class="s">"Export password"</span><span class="o">,</span> <span class="s">"Import password"</span><span class="o">);</span>
+</code></pre></div></div>
+
+<p><em>Although instances of <code class="language-plaintext highlighter-rouge">Account</code> can be used to access various information about specific
+Ethereum accounts, they do not contain any sensitive data (such as passphrases or private
+keys), rather act solely as identifiers for client code and the keystore.</em></p>
+
+<h3 id="accounts-on-ios-swift-3">Accounts on iOS (Swift 3)</h3>
+
+<p>An Ethereum account on iOS is implemented by the <code class="language-plaintext highlighter-rouge">GethAccount</code> class from the <code class="language-plaintext highlighter-rouge">Geth</code>
+framework. Assuming we already have an instance of a <code class="language-plaintext highlighter-rouge">GethKeyStore</code> called <code class="language-plaintext highlighter-rouge">ks</code> from the
+previous section, we can easily execute all of the described lifecycle operations with a
+handful of function calls.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// Create a new account with the specified encryption passphrase.</span>
+<span class="k">let</span> <span class="nv">newAcc</span> <span class="o">=</span> <span class="k">try!</span> <span class="n">ks</span><span class="p">?</span><span class="o">.</span><span class="nf">newAccount</span><span class="p">(</span><span class="s">"Creation password"</span><span class="p">)</span>
+
+<span class="c1">// Export the newly created account with a different passphrase. The returned</span>
+<span class="c1">// data from this method invocation is a JSON encoded, encrypted key-file.</span>
+<span class="k">let</span> <span class="nv">jsonKey</span> <span class="o">=</span> <span class="k">try!</span> <span class="n">ks</span><span class="p">?</span><span class="o">.</span><span class="nf">exportKey</span><span class="p">(</span><span class="n">newAcc</span><span class="o">!</span><span class="p">,</span> <span class="nv">passphrase</span><span class="p">:</span> <span class="s">"Creation password"</span><span class="p">,</span> <span class="nv">newPassphrase</span><span class="p">:</span> <span class="s">"Export password"</span><span class="p">)</span>
+
+<span class="c1">// Update the passphrase on the account created above inside the local keystore.</span>
+<span class="k">try!</span> <span class="n">ks</span><span class="p">?</span><span class="o">.</span><span class="nf">update</span><span class="p">(</span><span class="n">newAcc</span><span class="p">,</span> <span class="nv">passphrase</span><span class="p">:</span> <span class="s">"Creation password"</span><span class="p">,</span> <span class="nv">newPassphrase</span><span class="p">:</span> <span class="s">"Update password"</span><span class="p">)</span>
+
+<span class="c1">// Delete the account updated above from the local keystore.</span>
+<span class="k">try!</span> <span class="n">ks</span><span class="p">?</span><span class="o">.</span><span class="nf">delete</span><span class="p">(</span><span class="n">newAcc</span><span class="p">,</span> <span class="nv">passphrase</span><span class="p">:</span> <span class="s">"Update password"</span><span class="p">)</span>
+
+<span class="c1">// Import back the account we've exported (and then deleted) above with yet</span>
+<span class="c1">// again a fresh passphrase.</span>
+<span class="k">let</span> <span class="nv">impAcc</span>  <span class="o">=</span> <span class="k">try!</span> <span class="n">ks</span><span class="p">?</span><span class="o">.</span><span class="nf">importKey</span><span class="p">(</span><span class="n">jsonKey</span><span class="p">,</span> <span class="nv">passphrase</span><span class="p">:</span> <span class="s">"Export password"</span><span class="p">,</span> <span class="nv">newPassphrase</span><span class="p">:</span> <span class="s">"Import password"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><em>Although instances of <code class="language-plaintext highlighter-rouge">GethAccount</code> can be used to access various information about
+specific Ethereum accounts, they do not contain any sensitive data (such as passphrases or
+private keys), rather act solely as identifiers for client code and the keystore.</em></p>
+
+<h2 id="signing-authorization">Signing authorization</h2>
+
+<p>As mentioned above, account objects do not hold the sensitive private keys of the
+associated Ethereum accounts, but are merely placeholders to identify the cryptographic
+keys with. All operations that require authorization (e.g. transaction signing) are
+performed by the account manager after granting it access to the private keys.</p>
+
+<p>There are a few different ways one can authorize the account manager to execute signing
+operations, each having its advantages and drawbacks. Since the different methods have
+wildly different security guarantees, it is essential to be clear on how each works:</p>
+
+<ul>
+  <li><strong>Single authorization</strong>: The simplest way to sign a transaction via the keystore is to
+provide the passphrase of the account every time something needs to be signed, which
+will ephemerally decrypt the private key, execute the signing operation and immediately
+throw away the decrypted key. The drawbacks are that the passphrase needs to be queried
+from the user every time, which can become annoying if done frequently; or the
+application needs to keep the passphrase in memory, which can have security
+consequences if not done properly; and depending on the keystore’s configured strength,
+constantly decrypting keys can result in non-negligible resource requirements.</li>
+  <li><strong>Multiple authorizations</strong>: A more complex way of signing transactions via the
+keystore is to unlock the account via its passphrase once, and allow the account
+manager to cache the decrypted private key, enabling all subsequent signing requests to
+complete without the passphrase. The lifetime of the cached private key may be managed
+manually (by explicitly locking the account back up) or automatically (by providing a
+timeout during unlock). This mechanism is useful for scenarios where the user may need
+to sign many transactions or the application would need to do so without requiring user
+input. The crucial aspect to remember is that <strong>anyone with access to the account
+manager can sign transactions while a particular account is unlocked</strong> (e.g. device
+left unattended; application running untrusted code).</li>
+</ul>
+
+<p><em>Note, creating transactions is out of scope here, so the remainder of this section will
+assume we already have a transaction to sign, and will focus only on creating an
+authorized version of it. Creating an actually meaningful transaction will be covered
+later.</em></p>
+
+<h3 id="signing-on-android-java">Signing on Android (Java)</h3>
+
+<p>Assuming we already have an instance of a <code class="language-plaintext highlighter-rouge">KeyStore</code> called <code class="language-plaintext highlighter-rouge">ks</code> from the previous
+sections, we can create a new account to sign transactions with via it’s already
+demonstrated <code class="language-plaintext highlighter-rouge">newAccount</code> method; and to avoid going into transaction creation for now, we
+can hard-code a random transaction to sign instead.</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// Create a new account to sign transactions with</span>
+<span class="nc">Account</span> <span class="n">signer</span> <span class="o">=</span> <span class="n">ks</span><span class="o">.</span><span class="na">newAccount</span><span class="o">(</span><span class="s">"Signer password"</span><span class="o">);</span>
+<span class="nc">Transaction</span> <span class="n">tx</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">Transaction</span><span class="o">(</span>
+    <span class="mi">1</span><span class="o">,</span> <span class="k">new</span> <span class="nc">Address</span><span class="o">(</span><span class="s">"0x0000000000000000000000000000000000000000"</span><span class="o">),</span>
+    <span class="k">new</span> <span class="nf">BigInt</span><span class="o">(</span><span class="mi">0</span><span class="o">),</span> <span class="k">new</span> <span class="nc">BigInt</span><span class="o">(</span><span class="mi">0</span><span class="o">),</span> <span class="k">new</span> <span class="nc">BigInt</span><span class="o">(</span><span class="mi">1</span><span class="o">),</span> <span class="kc">null</span><span class="o">);</span> <span class="c1">// Random empty transaction</span>
+<span class="nc">BigInt</span> <span class="n">chain</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">BigInt</span><span class="o">(</span><span class="mi">1</span><span class="o">);</span> <span class="c1">// Chain identifier of the main net</span>
+</code></pre></div></div>
+
+<p>With the boilerplate out of the way, we can now sign transaction using the authorization
+mechanisms described above:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// Sign a transaction with a single authorization</span>
+<span class="nc">Transaction</span> <span class="n">signed</span> <span class="o">=</span> <span class="n">ks</span><span class="o">.</span><span class="na">signTxPassphrase</span><span class="o">(</span><span class="n">signer</span><span class="o">,</span> <span class="s">"Signer password"</span><span class="o">,</span> <span class="n">tx</span><span class="o">,</span> <span class="n">chain</span><span class="o">);</span>
+
+<span class="c1">// Sign a transaction with multiple manually cancelled authorizations</span>
+<span class="n">ks</span><span class="o">.</span><span class="na">unlock</span><span class="o">(</span><span class="n">signer</span><span class="o">,</span> <span class="s">"Signer password"</span><span class="o">);</span>
+<span class="n">signed</span> <span class="o">=</span> <span class="n">ks</span><span class="o">.</span><span class="na">signTx</span><span class="o">(</span><span class="n">signer</span><span class="o">,</span> <span class="n">tx</span><span class="o">,</span> <span class="n">chain</span><span class="o">);</span>
+<span class="n">ks</span><span class="o">.</span><span class="na">lock</span><span class="o">(</span><span class="n">signer</span><span class="o">.</span><span class="na">getAddress</span><span class="o">());</span>
+
+<span class="c1">// Sign a transaction with multiple automatically cancelled authorizations</span>
+<span class="n">ks</span><span class="o">.</span><span class="na">timedUnlock</span><span class="o">(</span><span class="n">signer</span><span class="o">,</span> <span class="s">"Signer password"</span><span class="o">,</span> <span class="mi">1000000000</span><span class="o">);</span>
+<span class="n">signed</span> <span class="o">=</span> <span class="n">ks</span><span class="o">.</span><span class="na">signTx</span><span class="o">(</span><span class="n">signer</span><span class="o">,</span> <span class="n">tx</span><span class="o">,</span> <span class="n">chain</span><span class="o">);</span>
+</code></pre></div></div>
+
+<h3 id="signing-on-ios-swift-3">Signing on iOS (Swift 3)</h3>
+
+<p>Assuming we already have an instance of a <code class="language-plaintext highlighter-rouge">GethKeyStore</code> called <code class="language-plaintext highlighter-rouge">ks</code> from the previous
+sections, we can create a new account to sign transactions with via it’s already
+demonstrated <code class="language-plaintext highlighter-rouge">newAccount</code> method; and to avoid going into transaction creation for now, we
+can hard-code a random transaction to sign instead.</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// Create a new account to sign transactions with</span>
+<span class="k">var</span> <span class="nv">error</span><span class="p">:</span> <span class="kt">NSError</span><span class="p">?</span>
+<span class="k">let</span> <span class="nv">signer</span> <span class="o">=</span> <span class="k">try!</span> <span class="n">ks</span><span class="p">?</span><span class="o">.</span><span class="nf">newAccount</span><span class="p">(</span><span class="s">"Signer password"</span><span class="p">)</span>
+
+<span class="k">let</span> <span class="nv">to</span>    <span class="o">=</span> <span class="kt">GethNewAddressFromHex</span><span class="p">(</span><span class="s">"0x0000000000000000000000000000000000000000"</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">error</span><span class="p">)</span>
+<span class="k">let</span> <span class="nv">tx</span>    <span class="o">=</span> <span class="kt">GethNewTransaction</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">to</span><span class="p">,</span> <span class="kt">GethNewBigInt</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="kt">GethNewBigInt</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="kt">GethNewBigInt</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="kc">nil</span><span class="p">)</span> <span class="c1">// Random empty transaction</span>
+<span class="k">let</span> <span class="nv">chain</span> <span class="o">=</span> <span class="kt">GethNewBigInt</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="c1">// Chain identifier of the main net</span>
+</code></pre></div></div>
+
+<p><em>Note, although Swift usually rewrites <code class="language-plaintext highlighter-rouge">NSError</code> returns to throws, this particular
+instance seems to have been missed for some reason (possibly due to it being a
+constructor). It will be fixed in a later version of the iOS bindings when the appropriate
+fixed are implemented upstream in the <code class="language-plaintext highlighter-rouge">gomobile</code> project.</em></p>
+
+<p>With the boilerplate out of the way, we can now sign transaction using the authorization
+methods described above:</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// Sign a transaction with a single authorization</span>
+<span class="k">var</span> <span class="nv">signed</span> <span class="o">=</span> <span class="k">try!</span> <span class="n">ks</span><span class="p">?</span><span class="o">.</span><span class="nf">signTxPassphrase</span><span class="p">(</span><span class="n">signer</span><span class="p">,</span> <span class="nv">passphrase</span><span class="p">:</span> <span class="s">"Signer password"</span><span class="p">,</span> <span class="nv">tx</span><span class="p">:</span> <span class="n">tx</span><span class="p">,</span> <span class="nv">chainID</span><span class="p">:</span> <span class="n">chain</span><span class="p">)</span>
+
+<span class="c1">// Sign a transaction with multiple manually cancelled authorizations</span>
+<span class="k">try!</span> <span class="n">ks</span><span class="p">?</span><span class="o">.</span><span class="nf">unlock</span><span class="p">(</span><span class="n">signer</span><span class="p">,</span> <span class="nv">passphrase</span><span class="p">:</span> <span class="s">"Signer password"</span><span class="p">)</span>
+<span class="n">signed</span> <span class="o">=</span> <span class="k">try!</span> <span class="n">ks</span><span class="p">?</span><span class="o">.</span><span class="nf">signTx</span><span class="p">(</span><span class="n">signer</span><span class="p">,</span> <span class="nv">tx</span><span class="p">:</span> <span class="n">tx</span><span class="p">,</span> <span class="nv">chainID</span><span class="p">:</span> <span class="n">chain</span><span class="p">)</span>
+<span class="k">try!</span> <span class="n">ks</span><span class="p">?</span><span class="o">.</span><span class="nf">lock</span><span class="p">(</span><span class="n">signer</span><span class="p">?</span><span class="o">.</span><span class="nf">getAddress</span><span class="p">())</span>
+
+<span class="c1">// Sign a transaction with multiple automatically cancelled authorizations</span>
+<span class="k">try!</span> <span class="n">ks</span><span class="p">?</span><span class="o">.</span><span class="nf">timedUnlock</span><span class="p">(</span><span class="n">signer</span><span class="p">,</span> <span class="nv">passphrase</span><span class="p">:</span> <span class="s">"Signer password"</span><span class="p">,</span> <span class="nv">timeout</span><span class="p">:</span> <span class="mi">1000000000</span><span class="p">)</span>
+<span class="n">signed</span> <span class="o">=</span> <span class="k">try!</span> <span class="n">ks</span><span class="p">?</span><span class="o">.</span><span class="nf">signTx</span><span class="p">(</span><span class="n">signer</span><span class="p">,</span> <span class="nv">tx</span><span class="p">:</span> <span class="n">tx</span><span class="p">,</span> <span class="nv">chainID</span><span class="p">:</span> <span class="n">chain</span><span class="p">)</span>
+</code></pre></div></div>
+
+
+    </div>

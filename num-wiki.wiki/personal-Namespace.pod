@@ -1,0 +1,313 @@
+   <div class="col-md-9" id="content">
+      
+      <p>The personal API manages private keys in the key store.</p>
+
+<ul id="markdown-toc">
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-personal#personal_importrawkey" id="markdown-toc-personal_importrawkey">personal_importRawKey</a></li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-personal#personal_listaccounts" id="markdown-toc-personal_listaccounts">personal_listAccounts</a>    <ul>
+      <li><a href="https://geth.ethereum.org/docs/rpc/ns-personal#example" id="markdown-toc-example">Example</a></li>
+    </ul>
+  </li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-personal#personal_lockaccount" id="markdown-toc-personal_lockaccount">personal_lockAccount</a></li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-personal#personal_newaccount" id="markdown-toc-personal_newaccount">personal_newAccount</a>    <ul>
+      <li><a href="https://geth.ethereum.org/docs/rpc/ns-personal#example-1" id="markdown-toc-example-1">Example</a></li>
+    </ul>
+  </li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-personal#personal_unlockaccount" id="markdown-toc-personal_unlockaccount">personal_unlockAccount</a>    <ul>
+      <li><a href="https://geth.ethereum.org/docs/rpc/ns-personal#examples" id="markdown-toc-examples">Examples</a></li>
+    </ul>
+  </li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-personal#personal_sendtransaction" id="markdown-toc-personal_sendtransaction">personal_sendTransaction</a>    <ul>
+      <li><a href="https://geth.ethereum.org/docs/rpc/ns-personal#examples-1" id="markdown-toc-examples-1">Examples</a></li>
+    </ul>
+  </li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-personal#personal_sign" id="markdown-toc-personal_sign">personal_sign</a>    <ul>
+      <li><a href="https://geth.ethereum.org/docs/rpc/ns-personal#examples-2" id="markdown-toc-examples-2">Examples</a></li>
+    </ul>
+  </li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-personal#personal_ecrecover" id="markdown-toc-personal_ecrecover">personal_ecRecover</a>    <ul>
+      <li><a href="https://geth.ethereum.org/docs/rpc/ns-personal#examples-3" id="markdown-toc-examples-3">Examples</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="personal_importrawkey">personal_importRawKey</h3>
+
+<p>Imports the given unencrypted private key (hex string) into the key store,
+encrypting it with the passphrase.</p>
+
+<p>Returns the address of the new account.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">personal.importRawKey(keydata, passphrase)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "personal_importRawKey", "params": [string, string]}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="personal_listaccounts">personal_listAccounts</h3>
+
+<p>Returns all the Ethereum account addresses of all keys
+in the key store.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">personal.listAccounts</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "personal_listAccounts", "params": []}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="example">Example</h4>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&gt;</span> <span class="nx">personal</span><span class="p">.</span><span class="nx">listAccounts</span>
+<span class="p">[</span><span class="dl">"</span><span class="s2">0x5e97870f263700f46aa00d967821199b9bc5a120</span><span class="dl">"</span><span class="p">,</span> <span class="dl">"</span><span class="s2">0x3d80b31a78c30fc628f20b2c89d7ddbf6e53cedc</span><span class="dl">"</span><span class="p">]</span>
+</code></pre></div></div>
+
+<h3 id="personal_lockaccount">personal_lockAccount</h3>
+
+<p>Removes the private key with given address from memory.
+The account can no longer be used to send transactions.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">personal.lockAccount(address)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "personal_lockAccount", "params": [string]}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="personal_newaccount">personal_newAccount</h3>
+
+<p>Generates a new private key and stores it in the key store directory.
+The key file is encrypted with the given passphrase.
+Returns the address of the new account.</p>
+
+<p>At the geth console, <code class="language-plaintext highlighter-rouge">newAccount</code> will prompt for a passphrase when 
+it is not supplied as the argument.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">personal.newAccount()</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "personal_newAccount", "params": [string]}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="example-1">Example</h4>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&gt;</span> <span class="nx">personal</span><span class="p">.</span><span class="nx">newAccount</span><span class="p">()</span>
+<span class="nx">Passphrase</span><span class="p">:</span> 
+<span class="nx">Repeat</span> <span class="nx">passphrase</span><span class="p">:</span> 
+<span class="dl">"</span><span class="s2">0x5e97870f263700f46aa00d967821199b9bc5a120</span><span class="dl">"</span>
+</code></pre></div></div>
+
+<p>The passphrase can also be supplied as a string.</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&gt;</span> <span class="nx">personal</span><span class="p">.</span><span class="nx">newAccount</span><span class="p">(</span><span class="dl">"</span><span class="s2">h4ck3r</span><span class="dl">"</span><span class="p">)</span>
+<span class="dl">"</span><span class="s2">0x3d80b31a78c30fc628f20b2c89d7ddbf6e53cedc</span><span class="dl">"</span>
+</code></pre></div></div>
+
+<h3 id="personal_unlockaccount">personal_unlockAccount</h3>
+
+<p>Decrypts the key with the given address from the key store.</p>
+
+<p>Both passphrase and unlock duration are optional when using the JavaScript console.
+If the passphrase is not supplied as an argument, the console will prompt for
+the passphrase interactively.</p>
+
+<p>The unencrypted key will be held in memory until the unlock duration expires.
+If the unlock duration defaults to 300 seconds. An explicit duration
+of zero seconds unlocks the key until geth exits.</p>
+
+<p>The account can be used with <code class="language-plaintext highlighter-rouge">eth_sign</code> and <code class="language-plaintext highlighter-rouge">eth_sendTransaction</code> while it is unlocked.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">personal.unlockAccount(address, passphrase, duration)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "personal_unlockAccount", "params": [string, string, number]}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="examples">Examples</h4>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&gt;</span> <span class="nx">personal</span><span class="p">.</span><span class="nx">unlockAccount</span><span class="p">(</span><span class="dl">"</span><span class="s2">0x5e97870f263700f46aa00d967821199b9bc5a120</span><span class="dl">"</span><span class="p">)</span>
+<span class="nx">Unlock</span> <span class="nx">account</span> <span class="mh">0x5e97870f263700f46aa00d967821199b9bc5a120</span>
+<span class="nx">Passphrase</span><span class="p">:</span> 
+<span class="kc">true</span>
+</code></pre></div></div>
+
+<p>Supplying the passphrase and unlock duration as arguments:</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&gt;</span> <span class="nx">personal</span><span class="p">.</span><span class="nx">unlockAccount</span><span class="p">(</span><span class="dl">"</span><span class="s2">0x5e97870f263700f46aa00d967821199b9bc5a120</span><span class="dl">"</span><span class="p">,</span> <span class="dl">"</span><span class="s2">foo</span><span class="dl">"</span><span class="p">,</span> <span class="mi">30</span><span class="p">)</span>
+<span class="kc">true</span>
+</code></pre></div></div>
+
+<p>If you want to type in the passphrase and stil override the default unlock duration,
+pass <code class="language-plaintext highlighter-rouge">null</code> as the passphrase.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&gt; personal.unlockAccount("0x5e97870f263700f46aa00d967821199b9bc5a120", null, 30)
+Unlock account 0x5e97870f263700f46aa00d967821199b9bc5a120
+Passphrase: 
+true
+</code></pre></div></div>
+
+<h3 id="personal_sendtransaction">personal_sendTransaction</h3>
+
+<p>Validate the given passphrase and submit transaction.</p>
+
+<p>The transaction is the same argument as for <code class="language-plaintext highlighter-rouge">eth_sendTransaction</code> and contains the <code class="language-plaintext highlighter-rouge">from</code> address. If the passphrase can be used to decrypt the private key belogging to <code class="language-plaintext highlighter-rouge">tx.from</code> the transaction is verified, signed and send onto the network. The account is not unlocked globally in the node and cannot be used in other RPC calls.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">personal.sendTransaction(tx, passphrase)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "personal_sendTransaction", "params": [tx, string]}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<p><em>Note, prior to Geth 1.5, please use <code class="language-plaintext highlighter-rouge">personal_signAndSendTransaction</code> as that was the
+original introductory name and only later renamed to the current final version.</em></p>
+
+<h4 id="examples-1">Examples</h4>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&gt;</span> <span class="kd">var</span> <span class="nx">tx</span> <span class="o">=</span> <span class="p">{</span><span class="na">from</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x391694e7e0b0cce554cb130d723a9d27458f9298</span><span class="dl">"</span><span class="p">,</span> <span class="na">to</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0xafa3f8684e54059998bc3a7b0d2b0da075154d66</span><span class="dl">"</span><span class="p">,</span> <span class="na">value</span><span class="p">:</span> <span class="nx">web3</span><span class="p">.</span><span class="nx">toWei</span><span class="p">(</span><span class="mf">1.23</span><span class="p">,</span> <span class="dl">"</span><span class="s2">ether</span><span class="dl">"</span><span class="p">)}</span>
+<span class="kc">undefined</span>
+<span class="o">&gt;</span> <span class="nx">personal</span><span class="p">.</span><span class="nx">sendTransaction</span><span class="p">(</span><span class="nx">tx</span><span class="p">,</span> <span class="dl">"</span><span class="s2">passphrase</span><span class="dl">"</span><span class="p">)</span>
+<span class="mh">0x8474441674cdd47b35b875fd1a530b800b51a5264b9975fb21129eeb8c18582f</span>
+</code></pre></div></div>
+
+<h3 id="personal_sign">personal_sign</h3>
+
+<p>The sign method calculates an Ethereum specific signature with:
+<code class="language-plaintext highlighter-rouge">sign(keccack256("\x19Ethereum Signed Message:\n" + len(message) + message)))</code>.</p>
+
+<p>By adding a prefix to the message makes the calculated signature recognisable as an Ethereum specific signature. This prevents misuse where a malicious DApp can sign arbitrary data (e.g. transaction) and use the signature to impersonate the victim.</p>
+
+<p>See ecRecover to verify the signature.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">personal.sign(message, account, [password])</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "personal_sign", "params": [message, account, password]}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="examples-2">Examples</h4>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&gt;</span> <span class="nx">personal</span><span class="p">.</span><span class="nx">sign</span><span class="p">(</span><span class="dl">"</span><span class="s2">0xdeadbeaf</span><span class="dl">"</span><span class="p">,</span> <span class="dl">"</span><span class="s2">0x9b2055d370f73ec7d8a03e965129118dc8f5bf83</span><span class="dl">"</span><span class="p">,</span> <span class="dl">""</span><span class="p">)</span>
+<span class="dl">"</span><span class="s2">0xa3f20717a250c2b0b729b7e5becbff67fdaef7e0699da4de7ca5895b02a170a12d887fd3b17bfdce3481f10bea41f45ba9f709d39ce8325427b57afcfc994cee1b</span><span class="dl">"</span>
+</code></pre></div></div>
+
+<h3 id="personal_ecrecover">personal_ecRecover</h3>
+
+<p><code class="language-plaintext highlighter-rouge">ecRecover</code> returns the address associated with the private key that was used to calculate the signature in <code class="language-plaintext highlighter-rouge">personal_sign</code>.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">personal.ecRecover(message, signature)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "personal_ecRecover", "params": [message, signature]}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="examples-3">Examples</h4>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&gt;</span> <span class="nx">personal</span><span class="p">.</span><span class="nx">sign</span><span class="p">(</span><span class="dl">"</span><span class="s2">0xdeadbeaf</span><span class="dl">"</span><span class="p">,</span> <span class="dl">"</span><span class="s2">0x9b2055d370f73ec7d8a03e965129118dc8f5bf83</span><span class="dl">"</span><span class="p">,</span> <span class="dl">""</span><span class="p">)</span>
+<span class="dl">"</span><span class="s2">0xa3f20717a250c2b0b729b7e5becbff67fdaef7e0699da4de7ca5895b02a170a12d887fd3b17bfdce3481f10bea41f45ba9f709d39ce8325427b57afcfc994cee1b</span><span class="dl">"</span>
+<span class="o">&gt;</span> <span class="nx">personal</span><span class="p">.</span><span class="nx">ecRecover</span><span class="p">(</span><span class="dl">"</span><span class="s2">0xdeadbeaf</span><span class="dl">"</span><span class="p">,</span> <span class="dl">"</span><span class="s2">0xa3f20717a250c2b0b729b7e5becbff67fdaef7e0699da4de7ca5895b02a170a12d887fd3b17bfdce3481f10bea41f45ba9f709d39ce8325427b57afcfc994cee1b</span><span class="dl">"</span><span class="p">)</span>
+<span class="dl">"</span><span class="s2">0x9b2055d370f73ec7d8a03e965129118dc8f5bf83</span><span class="dl">"</span>
+</code></pre></div></div>
+
+    </div>

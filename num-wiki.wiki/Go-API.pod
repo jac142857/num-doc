@@ -1,0 +1,64 @@
+ <div class="col-md-9" id="content">
+
+      
+      <p>The Ethereum blockchain along with its two extension protocols Whisper and Swarm was
+originally conceptualized to become the supporting pillar of web3, providing the
+consensus, messaging and storage backbone for a new generation of distributed (actually,
+decentralized) applications called DApps.</p>
+
+<p>The first incarnation towards this dream of web3 was a command line client providing an
+RPC interface into the peer-to-peer protocols. The client was soon enough extended with a
+web-browser-like graphical user interface, permitting developers to write DApps based on
+the tried and proven HTML/CSS/JS technologies.</p>
+
+<p>As many DApps have more complex requirements than what a browser environment can handle,
+it became apparent that providing programmatic access to the web3 pillars would open the
+door towards a new class of applications. As such, the second incarnation of the web3
+dream is to open up all our technologies for other projects as reusable components.</p>
+
+<p>Starting with the 1.5 release family of <code class="language-plaintext highlighter-rouge">go-ethereum</code>, we transitioned away from providing
+only a full blown Ethereum client and started shipping official Go packages that could be
+embedded into third party desktop and server applications.</p>
+
+<p><em>Note, this guide will assume you are familiar with Go development. It will make no
+attempts to cover general topics about Go project layouts, import paths or any other
+standard methodologies. If you are new to Go, consider reading its <a href="https://github.com/golang/go/wiki#getting-started-with-go">getting started guides</a> first.</em></p>
+
+<h2 id="quick-overview">Quick overview</h2>
+
+<p>Our reusable Go libraries focus on four main usage areas:</p>
+
+<ul>
+  <li>Simplified client side account management</li>
+  <li>Remote node interfacing via different transports</li>
+  <li>Contract interactions through auto-generated bindings</li>
+  <li>In-process Ethereum, Whisper and Swarm peer-to-peer node</li>
+</ul>
+
+<p>You can watch a quick overview about these in Peter’s (@karalabe) talk titled “Import
+Geth: Ethereum from Go and beyond”, presented at the Ethereum Devcon2 developer conference
+in September, 2016 (Shanghai). Slides are <a href="https://ethereum.karalabe.com/talks/2016-devcon.html">available here</a>.</p>
+
+<p><a href="https://www.youtube.com/watch?v=R0Ia1U9Gxjg"><img src="./Go API _ Go Ethereum_files/0.jpg" alt="Peter&#39;s Devcon2 talk"></a></p>
+
+<h2 id="go-packages">Go packages</h2>
+
+<p>The <code class="language-plaintext highlighter-rouge">go-ethereum</code> library is distributed as a collection of standard Go packages straight
+from our GitHub repository. The packages can be used directly via the official Go toolkit,
+without needing any third party tools. External dependencies are vendored locally into
+<code class="language-plaintext highlighter-rouge">vendor</code>, ensuring both self-containment as well as code stability. If you reuse
+<code class="language-plaintext highlighter-rouge">go-ethereum</code> in your own project, please follow these best practices and vendor it
+yourself too to avoid any accidental API breakages!</p>
+
+<p>The canonical import path for <code class="language-plaintext highlighter-rouge">go-ethereum</code> is <code class="language-plaintext highlighter-rouge">github.com/ethereum/go-ethereum</code>, with all
+packages residing underneath. Although there are <a href="https://pkg.go.dev/github.com/ethereum/go-ethereum/#section-directories">quite a number</a> of
+them, you’ll only need to care about a limited subset, each of which will be properly
+introduced in their relevant section.</p>
+
+<p>You can download all our packages via:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ go get -d github.com/ethereum/go-ethereum/...
+</code></pre></div></div>
+
+
+    </div>

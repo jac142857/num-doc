@@ -1,0 +1,498 @@
+  <div class="col-md-9" id="content">
+
+      
+      <p>The <code class="language-plaintext highlighter-rouge">les</code> API allows you to manage LES server settings, including client parameters and payment settings for prioritized clients. It also provides functions to query checkpoint information in both server and client mode.</p>
+
+<ul id="markdown-toc">
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-les#les_serverinfo" id="markdown-toc-les_serverinfo">les_serverInfo</a>    <ul>
+      <li><a href="https://geth.ethereum.org/docs/rpc/ns-les#example" id="markdown-toc-example">Example</a></li>
+    </ul>
+  </li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-les#les_clientinfo" id="markdown-toc-les_clientinfo">les_clientInfo</a>    <ul>
+      <li><a href="https://geth.ethereum.org/docs/rpc/ns-les#example-1" id="markdown-toc-example-1">Example</a></li>
+    </ul>
+  </li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-les#les_priorityclientinfo" id="markdown-toc-les_priorityclientinfo">les_priorityClientInfo</a>    <ul>
+      <li><a href="https://geth.ethereum.org/docs/rpc/ns-les#example-2" id="markdown-toc-example-2">Example</a></li>
+    </ul>
+  </li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-les#les_addbalance" id="markdown-toc-les_addbalance">les_addBalance</a>    <ul>
+      <li><a href="https://geth.ethereum.org/docs/rpc/ns-les#example-3" id="markdown-toc-example-3">Example</a></li>
+    </ul>
+  </li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-les#les_setclientparams" id="markdown-toc-les_setclientparams">les_setClientParams</a>    <ul>
+      <li><a href="https://geth.ethereum.org/docs/rpc/ns-les#example-4" id="markdown-toc-example-4">Example</a></li>
+    </ul>
+  </li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-les#les_setdefaultparams" id="markdown-toc-les_setdefaultparams">les_setDefaultParams</a>    <ul>
+      <li><a href="https://geth.ethereum.org/docs/rpc/ns-les#example-5" id="markdown-toc-example-5">Example</a></li>
+    </ul>
+  </li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-les#les_latestcheckpoint" id="markdown-toc-les_latestcheckpoint">les_latestCheckpoint</a>    <ul>
+      <li><a href="https://geth.ethereum.org/docs/rpc/ns-les#example-6" id="markdown-toc-example-6">Example</a></li>
+    </ul>
+  </li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-les#les_getcheckpoint" id="markdown-toc-les_getcheckpoint">les_getCheckpoint</a>    <ul>
+      <li><a href="https://geth.ethereum.org/docs/rpc/ns-les#example-7" id="markdown-toc-example-7">Example</a></li>
+    </ul>
+  </li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-les#les_getcheckpointcontractaddress" id="markdown-toc-les_getcheckpointcontractaddress">les_getCheckpointContractAddress</a>    <ul>
+      <li><a href="https://geth.ethereum.org/docs/rpc/ns-les#example-8" id="markdown-toc-example-8">Example</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="les_serverinfo">les_serverInfo</h3>
+
+<p>Get information about currently connected and total/individual allowed connection capacity.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Go</td>
+      <td><code class="language-plaintext highlighter-rouge">les.ServerInfo() map[string]interface{}</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">les.serverInfo()</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "les_serverInfo", "params": []}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="example">Example</h4>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&gt;</span> <span class="nx">les</span><span class="p">.</span><span class="nx">serverInfo</span>
+<span class="p">{</span>
+  <span class="nl">freeClientCapacity</span><span class="p">:</span> <span class="mi">16000</span><span class="p">,</span>
+  <span class="nx">maximumCapacity</span><span class="p">:</span> <span class="mi">1600000</span><span class="p">,</span>
+  <span class="nx">minimumCapacity</span><span class="p">:</span> <span class="mi">16000</span><span class="p">,</span>
+  <span class="nx">priorityConnectedCapacity</span><span class="p">:</span> <span class="mi">180000</span><span class="p">,</span>
+  <span class="nx">totalCapacity</span><span class="p">:</span> <span class="mi">1600000</span><span class="p">,</span>
+  <span class="nx">totalConnectedCapacity</span><span class="p">:</span> <span class="mi">180000</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="les_clientinfo">les_clientInfo</h3>
+
+<p>Get individual client information (connection, balance, pricing) on the specified list of clients or for all connected clients if the ID list is empty.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Go</td>
+      <td><code class="language-plaintext highlighter-rouge">les.ClientInfo(ids []enode.ID) map[enode.ID]map[string]interface{}</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">les.clientInfo([id, ...])</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "les_clientInfo", "params": [[id, ...]]}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="example-1">Example</h4>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&gt;</span> <span class="nx">les</span><span class="p">.</span><span class="nx">clientInfo</span><span class="p">([])</span>
+<span class="p">{</span>
+  <span class="mi">37078</span><span class="nx">bf8ea160a2b3d129bb4f3a930ce002356f83b820f467a07c1fe291531ea</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nl">capacity</span><span class="p">:</span> <span class="mi">16000</span><span class="p">,</span>
+    <span class="nx">connectionTime</span><span class="p">:</span> <span class="mf">11225.335901136</span><span class="p">,</span>
+    <span class="nx">isConnected</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="nx">pricing</span><span class="o">/</span><span class="nx">balance</span><span class="p">:</span> <span class="mi">998266395881</span><span class="p">,</span>
+    <span class="nx">pricing</span><span class="o">/</span><span class="nx">balanceMeta</span><span class="p">:</span> <span class="dl">""</span><span class="p">,</span>
+    <span class="nx">pricing</span><span class="o">/</span><span class="nx">negBalance</span><span class="p">:</span> <span class="mi">501657912857</span><span class="p">,</span>
+    <span class="nx">priority</span><span class="p">:</span> <span class="kc">true</span>
+  <span class="p">},</span>
+  <span class="mi">6</span><span class="nx">a47fe7bb23fd335df52ef1690f37ab44265a537b1d18eb616a3e77f898d9e77</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nl">capacity</span><span class="p">:</span> <span class="mi">100000</span><span class="p">,</span>
+    <span class="nx">connectionTime</span><span class="p">:</span> <span class="mf">9874.839293082</span><span class="p">,</span>
+    <span class="nx">isConnected</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="nx">pricing</span><span class="o">/</span><span class="nx">balance</span><span class="p">:</span> <span class="mi">2908840710198</span><span class="p">,</span>
+    <span class="nx">pricing</span><span class="o">/</span><span class="nx">balanceMeta</span><span class="p">:</span> <span class="dl">"</span><span class="s2">qwerty</span><span class="dl">"</span><span class="p">,</span>
+    <span class="nx">pricing</span><span class="o">/</span><span class="nx">negBalance</span><span class="p">:</span> <span class="mi">206242704507</span><span class="p">,</span>
+    <span class="nx">priority</span><span class="p">:</span> <span class="kc">true</span>
+  <span class="p">},</span>
+  <span class="mi">740</span><span class="nx">c78f7d914e5c763731bc751b513fc2388ffa0b47db080ded3e8b305e68c75</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nl">capacity</span><span class="p">:</span> <span class="mi">16000</span><span class="p">,</span>
+    <span class="nx">connectionTime</span><span class="p">:</span> <span class="mf">3089.286712188</span><span class="p">,</span>
+    <span class="nx">isConnected</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="nx">pricing</span><span class="o">/</span><span class="nx">balance</span><span class="p">:</span> <span class="mi">998266400174</span><span class="p">,</span>
+    <span class="nx">pricing</span><span class="o">/</span><span class="nx">balanceMeta</span><span class="p">:</span> <span class="dl">""</span><span class="p">,</span>
+    <span class="nx">pricing</span><span class="o">/</span><span class="nx">negBalance</span><span class="p">:</span> <span class="mi">55135348863</span><span class="p">,</span>
+    <span class="nx">priority</span><span class="p">:</span> <span class="kc">true</span>
+  <span class="p">},</span>
+  <span class="mi">9985</span><span class="nx">ade55b515f79f64274bf2ae440ca8c433cfb0f283fb6010bf46f796b2a3b</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nl">capacity</span><span class="p">:</span> <span class="mi">16000</span><span class="p">,</span>
+    <span class="nx">connectionTime</span><span class="p">:</span> <span class="mf">11479.335479545</span><span class="p">,</span>
+    <span class="nx">isConnected</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="nx">pricing</span><span class="o">/</span><span class="nx">balance</span><span class="p">:</span> <span class="mi">998266452203</span><span class="p">,</span>
+    <span class="nx">pricing</span><span class="o">/</span><span class="nx">balanceMeta</span><span class="p">:</span> <span class="dl">""</span><span class="p">,</span>
+    <span class="nx">pricing</span><span class="o">/</span><span class="nx">negBalance</span><span class="p">:</span> <span class="mi">564116425655</span><span class="p">,</span>
+    <span class="nx">priority</span><span class="p">:</span> <span class="kc">true</span>
+  <span class="p">},</span>
+  <span class="nx">ce65ada2c3e17d6da00cec0b3cc4c8ed5e74428b60f42fa287eaaec8cca62544</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nl">capacity</span><span class="p">:</span> <span class="mi">16000</span><span class="p">,</span>
+    <span class="nx">connectionTime</span><span class="p">:</span> <span class="mf">7095.794385419</span><span class="p">,</span>
+    <span class="nx">isConnected</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="nx">pricing</span><span class="o">/</span><span class="nx">balance</span><span class="p">:</span> <span class="mi">998266448492</span><span class="p">,</span>
+    <span class="nx">pricing</span><span class="o">/</span><span class="nx">balanceMeta</span><span class="p">:</span> <span class="dl">""</span><span class="p">,</span>
+    <span class="nx">pricing</span><span class="o">/</span><span class="nx">negBalance</span><span class="p">:</span> <span class="mi">214617753229</span><span class="p">,</span>
+    <span class="nx">priority</span><span class="p">:</span> <span class="kc">true</span>
+  <span class="p">},</span>
+  <span class="nx">e1495ceb6db842f3ee66428d4bb7f4a124b2b17111dae35d141c3d568b869ef1</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nl">capacity</span><span class="p">:</span> <span class="mi">16000</span><span class="p">,</span>
+    <span class="nx">connectionTime</span><span class="p">:</span> <span class="mf">8614.018237937</span><span class="p">,</span>
+    <span class="nx">isConnected</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="nx">pricing</span><span class="o">/</span><span class="nx">balance</span><span class="p">:</span> <span class="mi">998266391796</span><span class="p">,</span>
+    <span class="nx">pricing</span><span class="o">/</span><span class="nx">balanceMeta</span><span class="p">:</span> <span class="dl">""</span><span class="p">,</span>
+    <span class="nx">pricing</span><span class="o">/</span><span class="nx">negBalance</span><span class="p">:</span> <span class="mi">185964891797</span><span class="p">,</span>
+    <span class="nx">priority</span><span class="p">:</span> <span class="kc">true</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="les_priorityclientinfo">les_priorityClientInfo</h3>
+
+<p>Get individual client information on clients with a positive balance in the specified ID range, <code class="language-plaintext highlighter-rouge">start</code> included, <code class="language-plaintext highlighter-rouge">stop</code> excluded. If <code class="language-plaintext highlighter-rouge">stop</code> is zero then results are returned until the last existing balance entry. <code class="language-plaintext highlighter-rouge">maxCount</code> limits the number of returned results. If the count limit is reached but there are more IDs in the range then the first missing ID is included in the result with an empty value assigned to it.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Go</td>
+      <td><code class="language-plaintext highlighter-rouge">les.PriorityClientInfo(start, stop enode.ID, maxCount int) map[enode.ID]map[string]interface{}</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">les.priorityClientInfo(id, id, number)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "les_priorityClientInfo", "params": [id, id, number]}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="example-2">Example</h4>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&gt;</span> <span class="nx">les</span><span class="p">.</span><span class="nx">priorityClientInfo</span><span class="p">(</span><span class="dl">"</span><span class="s2">0x0000000000000000000000000000000000000000000000000000000000000000</span><span class="dl">"</span><span class="p">,</span> <span class="dl">"</span><span class="s2">0x0000000000000000000000000000000000000000000000000000000000000000</span><span class="dl">"</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="mi">37078</span><span class="nx">bf8ea160a2b3d129bb4f3a930ce002356f83b820f467a07c1fe291531ea</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nl">capacity</span><span class="p">:</span> <span class="mi">16000</span><span class="p">,</span>
+    <span class="nx">connectionTime</span><span class="p">:</span> <span class="mf">11128.247204027</span><span class="p">,</span>
+    <span class="nx">isConnected</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="nx">pricing</span><span class="o">/</span><span class="nx">balance</span><span class="p">:</span> <span class="mi">999819815030</span><span class="p">,</span>
+    <span class="nx">pricing</span><span class="o">/</span><span class="nx">balanceMeta</span><span class="p">:</span> <span class="dl">""</span><span class="p">,</span>
+    <span class="nx">pricing</span><span class="o">/</span><span class="nx">negBalance</span><span class="p">:</span> <span class="mi">501657912857</span><span class="p">,</span>
+    <span class="nx">priority</span><span class="p">:</span> <span class="kc">true</span>
+  <span class="p">},</span>
+  <span class="mi">6</span><span class="nx">a47fe7bb23fd335df52ef1690f37ab44265a537b1d18eb616a3e77f898d9e77</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nl">capacity</span><span class="p">:</span> <span class="mi">100000</span><span class="p">,</span>
+    <span class="nx">connectionTime</span><span class="p">:</span> <span class="mf">9777.750592047</span><span class="p">,</span>
+    <span class="nx">isConnected</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="nx">pricing</span><span class="o">/</span><span class="nx">balance</span><span class="p">:</span> <span class="mi">2918549830576</span><span class="p">,</span>
+    <span class="nx">pricing</span><span class="o">/</span><span class="nx">balanceMeta</span><span class="p">:</span> <span class="dl">"</span><span class="s2">qwerty</span><span class="dl">"</span><span class="p">,</span>
+    <span class="nx">pricing</span><span class="o">/</span><span class="nx">negBalance</span><span class="p">:</span> <span class="mi">206242704507</span><span class="p">,</span>
+    <span class="nx">priority</span><span class="p">:</span> <span class="kc">true</span>
+  <span class="p">},</span>
+  <span class="mi">740</span><span class="nx">c78f7d914e5c763731bc751b513fc2388ffa0b47db080ded3e8b305e68c75</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nl">capacity</span><span class="p">:</span> <span class="mi">16000</span><span class="p">,</span>
+    <span class="nx">connectionTime</span><span class="p">:</span> <span class="mf">2992.198001116</span><span class="p">,</span>
+    <span class="nx">isConnected</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="nx">pricing</span><span class="o">/</span><span class="nx">balance</span><span class="p">:</span> <span class="mi">999819845102</span><span class="p">,</span>
+    <span class="nx">pricing</span><span class="o">/</span><span class="nx">balanceMeta</span><span class="p">:</span> <span class="dl">""</span><span class="p">,</span>
+    <span class="nx">pricing</span><span class="o">/</span><span class="nx">negBalance</span><span class="p">:</span> <span class="mi">55135348863</span><span class="p">,</span>
+    <span class="nx">priority</span><span class="p">:</span> <span class="kc">true</span>
+  <span class="p">},</span>
+  <span class="mi">9985</span><span class="nx">ade55b515f79f64274bf2ae440ca8c433cfb0f283fb6010bf46f796b2a3b</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nl">capacity</span><span class="p">:</span> <span class="mi">16000</span><span class="p">,</span>
+    <span class="nx">connectionTime</span><span class="p">:</span> <span class="mf">11382.246766963</span><span class="p">,</span>
+    <span class="nx">isConnected</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="nx">pricing</span><span class="o">/</span><span class="nx">balance</span><span class="p">:</span> <span class="mi">999819871598</span><span class="p">,</span>
+    <span class="nx">pricing</span><span class="o">/</span><span class="nx">balanceMeta</span><span class="p">:</span> <span class="dl">""</span><span class="p">,</span>
+    <span class="nx">pricing</span><span class="o">/</span><span class="nx">negBalance</span><span class="p">:</span> <span class="mi">564116425655</span><span class="p">,</span>
+    <span class="nx">priority</span><span class="p">:</span> <span class="kc">true</span>
+  <span class="p">},</span>
+  <span class="nx">ce65ada2c3e17d6da00cec0b3cc4c8ed5e74428b60f42fa287eaaec8cca62544</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nl">capacity</span><span class="p">:</span> <span class="mi">16000</span><span class="p">,</span>
+    <span class="nx">connectionTime</span><span class="p">:</span> <span class="mf">6998.705683407</span><span class="p">,</span>
+    <span class="nx">isConnected</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="nx">pricing</span><span class="o">/</span><span class="nx">balance</span><span class="p">:</span> <span class="mi">999819882177</span><span class="p">,</span>
+    <span class="nx">pricing</span><span class="o">/</span><span class="nx">balanceMeta</span><span class="p">:</span> <span class="dl">""</span><span class="p">,</span>
+    <span class="nx">pricing</span><span class="o">/</span><span class="nx">negBalance</span><span class="p">:</span> <span class="mi">214617753229</span><span class="p">,</span>
+    <span class="nx">priority</span><span class="p">:</span> <span class="kc">true</span>
+  <span class="p">},</span>
+  <span class="nx">e1495ceb6db842f3ee66428d4bb7f4a124b2b17111dae35d141c3d568b869ef1</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nl">capacity</span><span class="p">:</span> <span class="mi">16000</span><span class="p">,</span>
+    <span class="nx">connectionTime</span><span class="p">:</span> <span class="mf">8516.929533901</span><span class="p">,</span>
+    <span class="nx">isConnected</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="nx">pricing</span><span class="o">/</span><span class="nx">balance</span><span class="p">:</span> <span class="mi">999819891640</span><span class="p">,</span>
+    <span class="nx">pricing</span><span class="o">/</span><span class="nx">balanceMeta</span><span class="p">:</span> <span class="dl">""</span><span class="p">,</span>
+    <span class="nx">pricing</span><span class="o">/</span><span class="nx">negBalance</span><span class="p">:</span> <span class="mi">185964891797</span><span class="p">,</span>
+    <span class="nx">priority</span><span class="p">:</span> <span class="kc">true</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="o">&gt;</span> <span class="nx">les</span><span class="p">.</span><span class="nx">priorityClientInfo</span><span class="p">(</span><span class="dl">"</span><span class="s2">0x4000000000000000000000000000000000000000000000000000000000000000</span><span class="dl">"</span><span class="p">,</span> <span class="dl">"</span><span class="s2">0xe000000000000000000000000000000000000000000000000000000000000000</span><span class="dl">"</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="mi">6</span><span class="nx">a47fe7bb23fd335df52ef1690f37ab44265a537b1d18eb616a3e77f898d9e77</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nl">capacity</span><span class="p">:</span> <span class="mi">100000</span><span class="p">,</span>
+    <span class="nx">connectionTime</span><span class="p">:</span> <span class="mf">9842.11178361</span><span class="p">,</span>
+    <span class="nx">isConnected</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="nx">pricing</span><span class="o">/</span><span class="nx">balance</span><span class="p">:</span> <span class="mi">2912113588853</span><span class="p">,</span>
+    <span class="nx">pricing</span><span class="o">/</span><span class="nx">balanceMeta</span><span class="p">:</span> <span class="dl">"</span><span class="s2">qwerty</span><span class="dl">"</span><span class="p">,</span>
+    <span class="nx">pricing</span><span class="o">/</span><span class="nx">negBalance</span><span class="p">:</span> <span class="mi">206242704507</span><span class="p">,</span>
+    <span class="nx">priority</span><span class="p">:</span> <span class="kc">true</span>
+  <span class="p">},</span>
+  <span class="mi">740</span><span class="nx">c78f7d914e5c763731bc751b513fc2388ffa0b47db080ded3e8b305e68c75</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nl">capacity</span><span class="p">:</span> <span class="mi">16000</span><span class="p">,</span>
+    <span class="nx">connectionTime</span><span class="p">:</span> <span class="mf">3056.559199029</span><span class="p">,</span>
+    <span class="nx">isConnected</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="nx">pricing</span><span class="o">/</span><span class="nx">balance</span><span class="p">:</span> <span class="mi">998790060237</span><span class="p">,</span>
+    <span class="nx">pricing</span><span class="o">/</span><span class="nx">balanceMeta</span><span class="p">:</span> <span class="dl">""</span><span class="p">,</span>
+    <span class="nx">pricing</span><span class="o">/</span><span class="nx">negBalance</span><span class="p">:</span> <span class="mi">55135348863</span><span class="p">,</span>
+    <span class="nx">priority</span><span class="p">:</span> <span class="kc">true</span>
+  <span class="p">},</span>
+  <span class="mi">9985</span><span class="nx">ade55b515f79f64274bf2ae440ca8c433cfb0f283fb6010bf46f796b2a3b</span><span class="p">:</span> <span class="p">{}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="les_addbalance">les_addBalance</h3>
+
+<p>Add signed value to the token balance of the specified client and update its <code class="language-plaintext highlighter-rouge">meta</code> tag. The balance cannot go below zero or over <code class="language-plaintext highlighter-rouge">2^^63-1</code>. The balance values before and after the update are returned. The <code class="language-plaintext highlighter-rouge">meta</code> tag can be used to store a sequence number or reference to the last processed incoming payment, token expiration info, balance in other currencies or any application-specific additional information.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Go</td>
+      <td><code class="language-plaintext highlighter-rouge">les.AddBalance(id enode.ID, value int64, meta string) ([2]uint64, error)}</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">les.addBalance(id, number, string)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "les_addBalance", "params": [id, number, string]}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="example-3">Example</h4>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&gt;</span> <span class="nx">les</span><span class="p">.</span><span class="nx">addBalance</span><span class="p">(</span><span class="dl">"</span><span class="s2">0x6a47fe7bb23fd335df52ef1690f37ab44265a537b1d18eb616a3e77f898d9e77</span><span class="dl">"</span><span class="p">,</span> <span class="mi">1000000000</span><span class="p">,</span> <span class="dl">"</span><span class="s2">qwerty</span><span class="dl">"</span><span class="p">)</span>
+<span class="p">[</span><span class="mi">968379616</span><span class="p">,</span> <span class="mi">1968379616</span><span class="p">]</span>
+</code></pre></div></div>
+
+<h3 id="les_setclientparams">les_setClientParams</h3>
+
+<p>Set capacity and pricing factors for the specified list of connected clients or for all connected clients if the ID list is empty.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Go</td>
+      <td><code class="language-plaintext highlighter-rouge">les.SetClientParams(ids []enode.ID, params map[string]interface{}) error</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">les.setClientParams([id, ...], {string: value, ...})</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "les_setClientParams", "params": [[id, ...], {string: value, ...}]}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="example-4">Example</h4>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&gt;</span> <span class="nx">les</span><span class="p">.</span><span class="nx">setClientParams</span><span class="p">([</span><span class="dl">"</span><span class="s2">0x6a47fe7bb23fd335df52ef1690f37ab44265a537b1d18eb616a3e77f898d9e77</span><span class="dl">"</span><span class="p">],</span> <span class="p">{</span>
+	<span class="dl">"</span><span class="s2">capacity</span><span class="dl">"</span><span class="p">:</span> <span class="mi">100000</span><span class="p">,</span>
+	<span class="dl">"</span><span class="s2">pricing/timeFactor</span><span class="dl">"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+	<span class="dl">"</span><span class="s2">pricing/capacityFactor</span><span class="dl">"</span><span class="p">:</span> <span class="mi">1000000000</span><span class="p">,</span>
+	<span class="dl">"</span><span class="s2">pricing/requestCostFactor</span><span class="dl">"</span><span class="p">:</span> <span class="mi">1000000000</span><span class="p">,</span>
+	<span class="dl">"</span><span class="s2">pricing/negative/timeFactor</span><span class="dl">"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+	<span class="dl">"</span><span class="s2">pricing/negative/capacityFactor</span><span class="dl">"</span><span class="p">:</span> <span class="mi">1000000000</span><span class="p">,</span>
+	<span class="dl">"</span><span class="s2">pricing/negative/requestCostFactor</span><span class="dl">"</span><span class="p">:</span> <span class="mi">1000000000</span><span class="p">,</span>
+<span class="p">})</span>
+<span class="kc">null</span>
+</code></pre></div></div>
+
+<h3 id="les_setdefaultparams">les_setDefaultParams</h3>
+
+<p>Set default pricing factors for subsequently connected clients.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Go</td>
+      <td><code class="language-plaintext highlighter-rouge">les.SetDefaultParams(params map[string]interface{}) error</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">les.setDefaultParams({string: value, ...})</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "les_setDefaultParams", "params": [{string: value, ...}]}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="example-5">Example</h4>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&gt;</span> <span class="nx">les</span><span class="p">.</span><span class="nx">setDefaultParams</span><span class="p">({</span>
+	<span class="dl">"</span><span class="s2">pricing/timeFactor</span><span class="dl">"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+	<span class="dl">"</span><span class="s2">pricing/capacityFactor</span><span class="dl">"</span><span class="p">:</span> <span class="mi">1000000000</span><span class="p">,</span>
+	<span class="dl">"</span><span class="s2">pricing/requestCostFactor</span><span class="dl">"</span><span class="p">:</span> <span class="mi">1000000000</span><span class="p">,</span>
+	<span class="dl">"</span><span class="s2">pricing/negative/timeFactor</span><span class="dl">"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+	<span class="dl">"</span><span class="s2">pricing/negative/capacityFactor</span><span class="dl">"</span><span class="p">:</span> <span class="mi">1000000000</span><span class="p">,</span>
+	<span class="dl">"</span><span class="s2">pricing/negative/requestCostFactor</span><span class="dl">"</span><span class="p">:</span> <span class="mi">1000000000</span><span class="p">,</span>
+<span class="p">})</span>
+<span class="kc">null</span>
+</code></pre></div></div>
+
+<h3 id="les_latestcheckpoint">les_latestCheckpoint</h3>
+
+<p>Get the index and hashes of the latest known checkpoint.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Go</td>
+      <td><code class="language-plaintext highlighter-rouge">les.LatestCheckpoint() ([4]string, error)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">les.latestCheckpoint()</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "les_latestCheckpoint", "params": []}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="example-6">Example</h4>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&gt;</span> <span class="nx">les</span><span class="p">.</span><span class="nx">latestCheckpoint</span>
+<span class="p">[</span><span class="dl">"</span><span class="s2">0x110</span><span class="dl">"</span><span class="p">,</span> <span class="dl">"</span><span class="s2">0x6eedf8142d06730b391bfcbd32e9bbc369ab0b46ae226287ed5b29505a376164</span><span class="dl">"</span><span class="p">,</span> <span class="dl">"</span><span class="s2">0x191bb2265a69c30201a616ae0d65a4ceb5937c2f0c94b125ff55343d707463e5</span><span class="dl">"</span><span class="p">,</span> <span class="dl">"</span><span class="s2">0xf58409088a5cb2425350a59d854d546d37b1e7bef8bbf6afee7fd15f943d626a</span><span class="dl">"</span><span class="p">]</span>
+</code></pre></div></div>
+
+<h3 id="les_getcheckpoint">les_getCheckpoint</h3>
+
+<p>Get checkpoint hashes by index.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Go</td>
+      <td><code class="language-plaintext highlighter-rouge">les.GetCheckpoint(index uint64) ([3]string, error)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">les.getCheckpoint(number)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "les_getCheckpoint", "params": [number]}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="example-7">Example</h4>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&gt;</span> <span class="nx">les</span><span class="p">.</span><span class="nx">getCheckpoint</span><span class="p">(</span><span class="mi">256</span><span class="p">)</span>
+<span class="p">[</span><span class="dl">"</span><span class="s2">0x93eb4af0b224b1097e09181c2e51536fe0a3bf3bb4d93e9a69cab9eb3e28c75f</span><span class="dl">"</span><span class="p">,</span> <span class="dl">"</span><span class="s2">0x0eb055e384cf58bc72ca20ca5e2b37d8d4115dce80ab4a19b72b776502c4dd5b</span><span class="dl">"</span><span class="p">,</span> <span class="dl">"</span><span class="s2">0xda6c02f7c51f9ecc3eca71331a7eaad724e5a0f4f906ce9251a2f59e3115dd6a</span><span class="dl">"</span><span class="p">]</span>
+</code></pre></div></div>
+
+<h3 id="les_getcheckpointcontractaddress">les_getCheckpointContractAddress</h3>
+
+<p>Get the address of the checkpoint oracle contract.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Go</td>
+      <td><code class="language-plaintext highlighter-rouge">les.GetCheckpointContractAddress() (string, error)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">les.checkpointContractAddress()</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "les_getCheckpointContractAddress", "params": []}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="example-8">Example</h4>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&gt;</span> <span class="nx">les</span><span class="p">.</span><span class="nx">checkpointContractAddress</span>
+<span class="dl">"</span><span class="s2">0x9a9070028361F7AAbeB3f2F2Dc07F82C4a98A02a</span><span class="dl">"</span>
+</code></pre></div></div>
+
+
+    </div>

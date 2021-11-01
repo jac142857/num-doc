@@ -1,0 +1,280 @@
+  <div class="col-md-9" id="content">
+      
+      <p>This guide explains how to set up a private network of multiple Geth nodes. An Ethereum
+network is a private network if the nodes are not connected to the main network. In this
+context private only means reserved or isolated, rather than protected or secure.</p>
+
+<h3 id="choosing-a-network-id">Choosing A Network ID</h3>
+
+<p>The network ID is an integer number which isolates Ethereum peer-to-peer networks.
+Connections between blockchain nodes will occur only if both peers use the same genesis
+block and network ID. Use the <code class="language-plaintext highlighter-rouge">--networkid</code> command line option to set the network ID used
+by geth.</p>
+
+<p>The main network has ID 1. If you supply your own custom network ID which is different
+than the main network, your nodes will not connect to other nodes and form a private
+network. If you’re planning to connect to your private chain on the Internet, it’s best to
+choose a network ID that isn’t already used. You can find a community-run registry of
+Ethereum networks at <a href="https://chainid.network/">https://chainid.network</a>.</p>
+
+<h3 id="choosing-a-consensus-algorithm">Choosing A Consensus Algorithm</h3>
+
+<p>While the main network uses proof-of-work to secure the blockchain, Geth also supports the
+the ‘clique’ proof-of-authority consensus algorithm as an alternative for private
+networks. We strongly recommend ‘clique’ for new private network deployments because it is
+much less resource intensive than proof-of-work. The clique system is also used for
+several public Ethereum testnets such as <a href="https://www.rinkeby.io/">Rinkeby</a> and
+<a href="https://goerli.net/">Görli</a>.</p>
+
+<p>Here are the key differences between the two consensus algorithms available in Geth:</p>
+
+<p>Ethash consensus, being a proof-of-work algorithm, is a system that allows open
+participation by anyone willing to dedicate resources to mining. While this is a great
+property to have for a public network, the overall security of the blockchain strictly
+depends on the total amount of resources used to secure it. As such, proof-of-work is a
+poor choice for private networks with few miners. The Ethash mining ‘difficulty’ is
+adjusted automatically so that new blocks are created approximately 12 seconds apart. As
+more mining resources are deployed on the network, creating a new block becomes harder so
+that the average block time matches the target block time.</p>
+
+<p>Clique consensus is a proof-of-authority system where new blocks can be created by
+authorized ‘signers’ only. The clique consenus protocol is specified in
+<a href="https://eips.ethereum.org/EIPS/eip-225">EIP-225</a>. The initial set of authorized signers is configured in the genesis
+block. Signers can be authorized and de-authorized using a voting mechanism, thus allowing
+the set of signers to change while the blockchain operates. Clique can be configured to
+target any block time (within reasonable limits) since it isn’t tied to the difficulty
+adjustment.</p>
+
+<h3 id="creating-the-genesis-block">Creating The Genesis Block</h3>
+
+<p>Every blockchain starts with the genesis block. When you run Geth with default settings
+for the first time, it commits the main net genesis to the database. For a private
+network, you usually want a different genesis block.</p>
+
+<p>The genesis block is configured using the <em>genesis.json</em> file. When creating a genesis
+block, you need to decide on a few initial parameters for your blockchain:</p>
+
+<ul>
+  <li>Ethereum platform features enabled at launch (<code class="language-plaintext highlighter-rouge">config</code>). Enabling protocol features
+while the blockchain is running requires scheduling a hard fork.</li>
+  <li>Initial block gas limit (<code class="language-plaintext highlighter-rouge">gasLimit</code>). Your choice here impacts how much EVM computation
+can happen within a single block. We recommend using the main Ethereum network as a
+<a href="https://etherscan.io/chart/gaslimit">guideline to find a good amount</a>. The block gas limit can be adjusted
+after launch using the <code class="language-plaintext highlighter-rouge">--miner.gastarget</code> command-line flag.</li>
+  <li>Initial allocation of ether (<code class="language-plaintext highlighter-rouge">alloc</code>). This determines how much ether is available to
+the addresses you list in the genesis block. Additional ether can be created through
+mining as the chain progresses.</li>
+</ul>
+
+<h4 id="clique-example">Clique Example</h4>
+
+<p>This is an example of a genesis.json file for a proof-of-authority network. The <code class="language-plaintext highlighter-rouge">config</code>
+section ensures that all known protocol changes are available and configures the ‘clique’
+engine to be used for consensus.</p>
+
+<p>Note that the initial signer set must be configured through the <code class="language-plaintext highlighter-rouge">extradata</code> field. This
+field is required for clique to work.</p>
+
+<p>First create the signer account keys using the <a href="https://geth.ethereum.org/docs/interface/managing-your-accounts">geth account</a>
+command (run this command multiple times to create more than one signer key).</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>geth account new <span class="nt">--datadir</span> data
+</code></pre></div></div>
+
+<p>Take note of the Ethereum address printed by this command.</p>
+
+<p>To create the initial extradata for your network, collect the signer addresses and encode
+<code class="language-plaintext highlighter-rouge">extradata</code> as the concatenation of 32 zero bytes, all signer addresses, and 65 further
+zero bytes. In the example below, <code class="language-plaintext highlighter-rouge">extradata</code> contains a single initial signer address,
+<code class="language-plaintext highlighter-rouge">0x7df9a875a174b3bc565e6424a0050ebc1b2d1d82</code>.</p>
+
+<p>You can use the <code class="language-plaintext highlighter-rouge">period</code> configuration option to set the target block time of the chain.</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"config"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"chainId"</span><span class="p">:</span><span class="w"> </span><span class="mi">15</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"homesteadBlock"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"eip150Block"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"eip155Block"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"eip158Block"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"byzantiumBlock"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"constantinopleBlock"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"petersburgBlock"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"clique"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"period"</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"epoch"</span><span class="p">:</span><span class="w"> </span><span class="mi">30000</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="nl">"difficulty"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"gasLimit"</span><span class="p">:</span><span class="w"> </span><span class="s2">"8000000"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"extradata"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x00000000000000000000000000000000000000000000000000000000000000007df9a875a174b3bc565e6424a0050ebc1b2d1d820000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"alloc"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"7df9a875a174b3bc565e6424a0050ebc1b2d1d82"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nl">"balance"</span><span class="p">:</span><span class="w"> </span><span class="s2">"300000"</span><span class="w"> </span><span class="p">},</span><span class="w">
+    </span><span class="nl">"f41c74c9ae680c1aa78f42e5647a62f353b7bdde"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nl">"balance"</span><span class="p">:</span><span class="w"> </span><span class="s2">"400000"</span><span class="w"> </span><span class="p">}</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<h4 id="ethash-example">Ethash Example</h4>
+
+<p>Since ethash is the default consensus algorithm, no additional parameters need to be
+configured in order to use it. You can influence the initial mining difficulty using the
+<code class="language-plaintext highlighter-rouge">difficulty</code> parameter, but note that the difficulty adjustment algorithm will quickly
+adapt to the amount of mining resources you deploy on the chain.</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"config"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"chainId"</span><span class="p">:</span><span class="w"> </span><span class="mi">15</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"homesteadBlock"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"eip150Block"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"eip155Block"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"eip158Block"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"byzantiumBlock"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"constantinopleBlock"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"petersburgBlock"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"ethash"</span><span class="p">:</span><span class="w"> </span><span class="p">{}</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="nl">"difficulty"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"gasLimit"</span><span class="p">:</span><span class="w"> </span><span class="s2">"8000000"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"alloc"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"7df9a875a174b3bc565e6424a0050ebc1b2d1d82"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nl">"balance"</span><span class="p">:</span><span class="w"> </span><span class="s2">"300000"</span><span class="w"> </span><span class="p">},</span><span class="w">
+    </span><span class="nl">"f41c74c9ae680c1aa78f42e5647a62f353b7bdde"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nl">"balance"</span><span class="p">:</span><span class="w"> </span><span class="s2">"400000"</span><span class="w"> </span><span class="p">}</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<h3 id="initializing-the-geth-database">Initializing the Geth Database</h3>
+
+<p>To create a blockchain node that uses this genesis block, run the following command. This
+imports and sets the canonical genesis block for your chain.</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>geth init <span class="nt">--datadir</span> data genesis.json
+</code></pre></div></div>
+
+<p>Future runs of geth using this data directory will use the genesis block you have defined.</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>geth <span class="nt">--datadir</span> data <span class="nt">--networkid</span> 15
+</code></pre></div></div>
+
+<h3 id="scheduling-hard-forks">Scheduling Hard Forks</h3>
+
+<p>As Ethereum protocol development progresses, new Ethereum features become available. To
+enable these features on your private network, you must schedule a hard fork.</p>
+
+<p>First, choose any future block number where the hard fork will activate. Continuing from
+the genesis.json example above, let’s assume your network is running and its current block
+number is 35421. To schedule the ‘Istanbul’ fork, we pick block 40000 as the activation
+block number and modify our genesis.json file to set it:</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"config"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="err">...</span><span class="w">
+    </span><span class="nl">"istanbulBlock"</span><span class="p">:</span><span class="w"> </span><span class="mi">40000</span><span class="p">,</span><span class="w">
+    </span><span class="err">...</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="err">...</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p>In order to update to the new fork, first ensure that all Geth instances on your private
+network actually support the Istanbul fork (i.e. ensure you have the latest version of
+Geth installed). Now shut down all nodes and re-run the <code class="language-plaintext highlighter-rouge">init</code> command to enable the new
+chain configuration:</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>geth init <span class="nt">--datadir</span> data genesis.json
+</code></pre></div></div>
+
+<h3 id="setting-up-networking">Setting Up Networking</h3>
+
+<p>Once your node is initialized to the desired genesis state, it is time to set up the
+peer-to-peer network. Any node can be used as an entry point. We recommend dedicating a
+single node as the rendezvous point which all other nodes use to join. This node is called
+the ‘bootstrap node’.</p>
+
+<p>First, determine the IP address of the machine your bootstrap node will run on. If you are
+using a cloud service such as Amazon EC2, you’ll find the IP of the virtual machine in the
+management console. Please also ensure that your firewall configuration allows both UDP
+and TCP traffic on port 30303.</p>
+
+<p>The bootstrap node needs to know about its own IP address in order to be able to relay it
+others. The IP is set using the <code class="language-plaintext highlighter-rouge">--nat</code> flag (insert your own IP instead of the example
+address below).</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>geth <span class="nt">--datadir</span> data <span class="nt">--networkid</span> 15 <span class="nt">--nat</span> extip:172.16.254.4
+</code></pre></div></div>
+
+<p>Now extract the ‘node record’ of the bootnode using the JS console.</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>geth attach data/geth.ipc <span class="nt">--exec</span> admin.nodeInfo.enr
+</code></pre></div></div>
+
+<p>This command should print a base64 string such as the following example. Other nodes will
+use the information contained in the bootstrap node record to connect to your peer-to-peer
+network.</p>
+
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="highlight"><code>"enr:-Je4QEiMeOxy_h0aweL2DtZmxnUMy-XPQcZllrMt_2V1lzynOwSx7GnjCf1k8BAsZD5dvHOBLuldzLYxpoD5UcqISiwDg2V0aMfGhGlQhqmAgmlkgnY0gmlwhKwQ_gSJc2VjcDI1NmsxoQKX_WLWgDKONsGvxtp9OeSIv2fRoGwu5vMtxfNGdut4cIN0Y3CCdl-DdWRwgnZf"
+</code></pre></div></div>
+
+<p>Setting up peer-to-peer networking depends on your requirements. If you connect nodes
+across the Internet, please ensure that your bootnode and all other nodes have public IP
+addresses assigned, and both TCP and UDP traffic can pass the firewall.</p>
+
+<p>If Internet connectivity is not required or all member nodes connect using well-known IPs,
+we strongly recommend setting up Geth to restrict peer-to-peer connectivity to an IP
+subnet. Doing so will further isolate your network and prevents cross-connecting with
+other blockchain networks in case your nodes are reachable from the Internet. Use the
+<code class="language-plaintext highlighter-rouge">--netrestrict</code> flag to configure a whitelist of IP networks:</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>geth &lt;other-flags&gt; <span class="nt">--netrestrict</span> 172.16.254.0/24
+</code></pre></div></div>
+
+<p>With the above setting, Geth will only allow connections from the 172.16.254.0/24 subnet,
+and will not attempt to connect to other nodes outside of the set IP range.</p>
+
+<h3 id="running-member-nodes">Running Member Nodes</h3>
+
+<p>Before running a member node, you have to initialize it with the same genesis file as
+used for the bootstrap node.</p>
+
+<p>With the bootnode operational and externally reachable (you can try <code class="language-plaintext highlighter-rouge">telnet &lt;ip&gt; &lt;port&gt;</code>
+to ensure it’s indeed reachable), you can start more Geth nodes and connect them via the
+bootstrap node using the <code class="language-plaintext highlighter-rouge">--bootnodes</code> flag.</p>
+
+<p>To create a member node running on the same machine as the bootstrap node, choose a
+separate data directory (example: <code class="language-plaintext highlighter-rouge">data-2</code>) and listening port (example: <code class="language-plaintext highlighter-rouge">30305</code>):</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>geth <span class="nt">--datadir</span> data-2 <span class="nt">--networkid</span> 15 <span class="nt">--port</span> 30305 <span class="nt">--bootnodes</span> &lt;bootstrap-node-record&gt;
+</code></pre></div></div>
+
+<p>With the member node running, you can check whether it is connected to the bootstrap node
+or any other node in your network by attaching a console and running <code class="language-plaintext highlighter-rouge">admin.peers</code>. It may
+take up to a few seconds for the nodes to get connected.</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>geth attach data-2/geth.ipc <span class="nt">--exec</span> admin.peers
+</code></pre></div></div>
+
+<h3 id="clique-running-a-signer">Clique: Running A Signer</h3>
+
+<p>To set up Geth for signing blocks in proof-of-authority mode, a signer account must be
+available. The account must be unlocked to mine blocks. The following command will prompt
+for the account password, then start signing blocks:</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>geth &lt;other-flags&gt; <span class="nt">--unlock</span> 0x7df9a875a174b3bc565e6424a0050ebc1b2d1d82 <span class="nt">--mine</span>
+</code></pre></div></div>
+
+<p>You can further configure mining by changing the default gas limit blocks converge to
+(with <code class="language-plaintext highlighter-rouge">--miner.gastarget</code>) and the price transactions are accepted at (with <code class="language-plaintext highlighter-rouge">--miner.gasprice</code>).</p>
+
+<h3 id="ethash-running-a-miner">Ethash: Running A Miner</h3>
+
+<p>For proof-of-work in a simple private network, a single CPU miner instance is enough to
+create a stable stream of blocks at regular intervals. To start a Geth instance for
+mining, run it with all the usual flags and add the following to configure mining:</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>geth &lt;other-flags&gt; <span class="nt">--mine</span> <span class="nt">--miner</span>.threads<span class="o">=</span>1 <span class="nt">--miner</span>.etherbase<span class="o">=</span>0x0000000000000000000000000000000000000000
+</code></pre></div></div>
+
+<p>This will start mining bocks and transactions on a single CPU thread, crediting all block
+rewards to the account specified by <code class="language-plaintext highlighter-rouge">--miner.etherbase</code>.</p>
+
+    </div>

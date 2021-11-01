@@ -1,0 +1,170 @@
+  <div class="col-md-9" id="content">
+
+      
+      <p>This document explains how to set up geth for mining. The Ethereum wiki also has a <a href="https://eth.wiki/en/fundamentals/mining">page
+about mining</a>, be sure to check that one as well.</p>
+
+<p>Mining is the process through which new blocks are created. Geth actually creates new
+blocks all the time, but these blocks need to be secured through proof-of-work so they
+will be accepted by other nodes. Mining is all about creating these proof-of-work values.</p>
+
+<p>The proof-of-work computation can be performed in multiple ways. Geth includes a CPU
+miner, which does mining within the geth process. We discourage using the CPU miner with
+the Ethereum mainnet. If you want to mine real ether, use GPU mining. Your best option for
+doing that is the <a href="https://github.com/ethereum-mining/ethminer">ethminer</a> software.</p>
+
+<p>Always ensure your blockchain is fully synchronised with the chain before starting to
+mine, otherwise you will not be mining on the correct chain and your block rewards will
+not be valueable.</p>
+
+<h2 id="gpu-mining">GPU mining</h2>
+
+<p>The ethash algorithm is memory hard and in order to fit the DAG into memory, it needs
+1-2GB of RAM on each GPU. If you get <code class="language-plaintext highlighter-rouge">Error GPU mining. GPU memory fragmentation?</code> you
+don’t have enough memory.</p>
+
+<h3 id="installing-ethminer">Installing ethminer</h3>
+
+<p>To get ethminer, you need to install the ethminer binary package or build it from source.
+See <a href="https://github.com/ethereum-mining/ethminer/#build">https://github.com/ethereum-mining/ethminer/#build</a> for the official ethminer
+build/install instructions. At the time of writing, ethminer only provides a binary for
+Microsoft Windows.</p>
+
+<h3 id="using-ethminer-with-geth">Using ethminer with geth</h3>
+
+<p>First create an account to hold your block rewards.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>geth account new
+</code></pre></div></div>
+
+<p>Follow the prompts and enter a good password. <strong>DO NOT FORGET YOUR PASSWORD</strong>. Also take
+note of the public Ethereum address which is printed at the end of the account creation
+process. In the following examples, we will use 0xC95767AC46EA2A9162F0734651d6cF17e5BfcF10
+as the example address.</p>
+
+<p>Now start geth and wait for it to sync the blockchain. This will take quite a while.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>geth --http --miner.etherbase 0xC95767AC46EA2A9162F0734651d6cF17e5BfcF10
+</code></pre></div></div>
+
+<p>Now we’re ready to start mining. In a new terminal session, run ethminer and connect it to geth:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ethminer -G -p http://127.0.0.1:8545
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">ethminer</code> communicates with geth on port 8545 (the default RPC port in geth). You can
+change this by giving the <a href="https://geth.ethereum.org/docs/rpc/server"><code class="language-plaintext highlighter-rouge">--http.port</code> option</a> to <code class="language-plaintext highlighter-rouge">geth</code>. Ethminer will find
+geth on any port. You also need to set the port on <code class="language-plaintext highlighter-rouge">ethminer</code> with <code class="language-plaintext highlighter-rouge">-P
+http://127.0.0.1:3301</code>. Setting up custom ports is necessary if you want several instances
+mining on the same computer. If you are testing on a private cluster, we recommend you use
+CPU mining instead.</p>
+
+<p>If the default for <code class="language-plaintext highlighter-rouge">ethminer</code> does not work try to specify the OpenCL device with:
+<code class="language-plaintext highlighter-rouge">--opencl-device X</code> where X is 0, 1, 2, etc. When running <code class="language-plaintext highlighter-rouge">ethminer</code> with <code class="language-plaintext highlighter-rouge">-M</code>
+(benchmark), you should see something like:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Benchmarking on platform: { "platform": "NVIDIA CUDA", "device": "GeForce GTX 750 Ti", "version": "OpenCL 1.1 CUDA" }
+
+Benchmarking on platform: { "platform": "Apple", "device": "Intel(R) Xeon(R) CPU E5-1620 v2 @ 3.70GHz", "version": "OpenCL 1.2 " }
+</code></pre></div></div>
+
+<p><strong>Note</strong> hashrate info is not available in <code class="language-plaintext highlighter-rouge">geth</code> when GPU mining. Check your hashrate
+with <code class="language-plaintext highlighter-rouge">ethminer</code>, <code class="language-plaintext highlighter-rouge">miner.hashrate</code> will always report 0.</p>
+
+<h2 id="cpu-mining-with-geth">CPU Mining with Geth</h2>
+
+<p>When you start up your ethereum node with <code class="language-plaintext highlighter-rouge">geth</code> it is not mining by default. To start it
+in mining mode, you use the <code class="language-plaintext highlighter-rouge">--mine</code> command-line flag. The <code class="language-plaintext highlighter-rouge">--miner.threads</code> parameter can
+be used to set the number parallel mining threads (defaulting to the total number of
+processor cores).</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>geth --mine --miner.threads=4
+</code></pre></div></div>
+
+<p>You can also start and stop CPU mining at runtime using the
+<a href="https://geth.ethereum.org/docs/interface/javascript-console">console</a>. <code class="language-plaintext highlighter-rouge">miner.start</code> takes an optional parameter for
+the number of miner threads.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&gt; miner.start(8)
+true
+&gt; miner.stop()
+true
+</code></pre></div></div>
+
+<p>Note that mining for real ether only makes sense if you are in sync with the network
+(since you mine on top of the consensus block). Therefore the eth blockchain
+downloader/synchroniser will delay mining until syncing is complete, and after that mining
+automatically starts unless you cancel your intention with <code class="language-plaintext highlighter-rouge">miner.stop()</code>.</p>
+
+<p>In order to earn ether you must have your <strong>etherbase</strong> (or <strong>coinbase</strong>) address set.
+This etherbase defaults to your <a href="https://geth.ethereum.org/docs/interface/managing-your-accounts">primary account</a>. If
+you don’t have an etherbase address, then <code class="language-plaintext highlighter-rouge">geth --mine</code> will not start up.</p>
+
+<p>You can set your etherbase on the command line:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>geth --miner.etherbase '0xC95767AC46EA2A9162F0734651d6cF17e5BfcF10' --mine 2&gt;&gt; geth.log
+</code></pre></div></div>
+
+<p>You can reset your etherbase on the console too:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&gt; miner.setEtherbase(eth.accounts[2])
+</code></pre></div></div>
+
+<p>Note that your etherbase does not need to be an address of a local account, just an
+existing one.</p>
+
+<p>There is an option <a href="https://geth.ethereum.org/docs/interface/javascript-console">to add extra data</a> (32 bytes only) to
+your mined blocks. By convention this is interpreted as a unicode string, so you can set
+your short vanity tag.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&gt; miner.setExtra("ΞTHΞЯSPHΞЯΞ")
+</code></pre></div></div>
+
+<p>You can check your hashrate with <a href="https://geth.ethereum.org/docs/interface/javascript-console">miner.hashrate</a>, the
+result is in H/s (Hash operations per second).</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&gt; eth.hashrate
+712000
+</code></pre></div></div>
+
+<p>After you successfully mined some blocks, you can check the ether balance of your
+etherbase account. Now assuming your etherbase is a local account:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&gt; eth.getBalance(eth.coinbase).toNumber();
+'34698870000000'
+</code></pre></div></div>
+
+<p>You can check which blocks are mined by a particular miner (address) with the following
+code snippet on the console:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&gt; function minedBlocks(lastn, addr) {
+    addrs = [];
+    if (!addr) {
+        addr = eth.coinbase
+    }
+    limit = eth.blockNumber - lastn
+    for (i = eth.blockNumber; i &gt;= limit; i--) {
+        if (eth.getBlock(i).miner == addr) {
+            addrs.push(i)
+        }
+    }
+    return addrs
+}
+// scans the last 1000 blocks and returns the blocknumbers of blocks mined by your coinbase
+// (more precisely blocks the mining reward for which is sent to your coinbase).
+&gt; minedBlocks(1000, eth.coinbase)
+[352708, 352655, 352559]
+</code></pre></div></div>
+
+<p>Note that it will happen often that you find a block yet it never makes it to the
+canonical chain. This means when you locally include your mined block, the current state
+will show the mining reward credited to your account, however, after a while, the better
+chain is discovered and we switch to a chain in which your block is not included and
+therefore no mining reward is credited. Therefore it is quite possible that as a miner
+monitoring their coinbase balance will find that it may fluctuate quite a bit.</p>
+
+<p>The logs show locally mined blocks confirmed after 5 blocks. At the moment you may find it
+easier and faster to generate the list of your mined blocks from these logs.</p>
+
+
+    </div>

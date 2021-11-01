@@ -1,0 +1,435 @@
+   <div class="col-md-9" id="content">
+  
+      
+      <p><strong>[Please note, events are not yet implemented as they need some RPC subscription
+features that are still under review.]</strong></p>
+
+<p>The original roadmap and/or dream of the Ethereum platform was to provide a solid, high
+performing client implementation of the consensus protocol in various languages, which
+would provide an RPC interface for JavaScript DApps to communicate with, pushing towards
+the direction of the Mist browser, through which users can interact with the blockchain.</p>
+
+<p>Although this was a solid plan for mainstream adoption and does cover quite a lot of use
+cases that people come up with (mostly where people manually interact with the blockchain),
+it eludes the server side (backend, fully automated, devops) use cases where JavaScript is
+usually not the language of choice given its dynamic nature.</p>
+
+<p>This page introduces the concept of server side native Dapps: Go language bindings to any
+Ethereum contract that is compile time type safe, highly performant and best of all, can
+be generated fully automatically from a contract ABI and optionally the EVM bytecode.</p>
+
+<p><em>This page is written in a more beginner friendly tutorial style to make it easier for
+people to start out with writing Go native Dapps. The used concepts will be introduced
+gradually as a developer would need/encounter them. However, we do assume the reader
+is familiar with Ethereum in general, has a fair understanding of Solidity and can code
+Go.</em></p>
+
+<h2 id="token-contract">Token contract</h2>
+
+<p>To avoid falling into the fallacy of useless academic examples, we’re going to take the
+official Token contract as the base for introducing the Go
+native bindings. If you’re unfamiliar with the contract, skimming the linked page should
+probably be enough, the details aren’t relevant for now. <em>In short the contract implements
+a custom token that can be deployed on top of Ethereum.</em> To make sure this tutorial doesn’t
+go stale if the linked website changes, the Solidity source code of the Token contract is
+also available at <a href="https://gist.github.com/karalabe/08f4b780e01c8452d989"><code class="language-plaintext highlighter-rouge">token.sol</code></a>.</p>
+
+<h3 id="go-binding-generator">Go binding generator</h3>
+
+<p>Interacting with a contract on the Ethereum blockchain from Go (or any other language for
+a matter of fact) is already possible via the RPC interfaces exposed by Ethereum clients.
+However, writing the boilerplate code that translates decent Go language constructs into
+RPC calls and back is extremely time consuming and also extremely brittle: implementation
+bugs can only be detected during runtime and it’s almost impossible to evolve a contract
+as even a tiny change in Solidity can be painful to port over to Go.</p>
+
+<p>To avoid all this mess, the go-ethereum implementation introduces a source code generator
+that can convert Ethereum ABI definitions into easy to use, type-safe Go packages. Assuming
+you have a valid Go development environment set up and the go-ethereum
+repository checked out correctly, you can build the generator with:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ cd $GOPATH/src/github.com/ethereum/go-ethereum
+$ make abigen
+</code></pre></div></div>
+
+<h3 id="generating-the-bindings">Generating the bindings</h3>
+
+<p>The single essential thing needed to generate a Go binding to an Ethereum contract is the
+contract’s ABI definition <code class="language-plaintext highlighter-rouge">JSON</code> file. For our <code class="language-plaintext highlighter-rouge">Token</code> contract tutorial you can obtain this
+either by compiling the Solidity code yourself (e.g. via @chriseth’s <a href="https://chriseth.github.io/browser-solidity/">online Solidity compiler</a>), or you can download our pre-compiled <a href="https://gist.github.com/karalabe/b8dfdb6d301660f56c1b"><code class="language-plaintext highlighter-rouge">token.abi</code></a>.</p>
+
+<p>To generate a binding, simply call:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ abigen --abi token.abi --pkg main --type Token --out token.go
+</code></pre></div></div>
+
+<p>Where the flags are:</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">--abi</code>: Mandatory path to the contract ABI to bind to</li>
+  <li><code class="language-plaintext highlighter-rouge">--pkg</code>: Mandatory Go package name to place the Go code into</li>
+  <li><code class="language-plaintext highlighter-rouge">--type</code>: Optional Go type name to assign to the binding struct</li>
+  <li><code class="language-plaintext highlighter-rouge">--out</code>: Optional output path for the generated Go source file (not set = stdout)</li>
+</ul>
+
+<p>This will generate a type-safe Go binding for the Token contract. The generated code will
+look something like <a href="https://gist.github.com/karalabe/5839509295afa4f7e2215bc4116c7a8f"><code class="language-plaintext highlighter-rouge">token.go</code></a>,
+but please generate your own as this will change as more work is put into the generator.</p>
+
+<h3 id="accessing-an-ethereum-contract">Accessing an Ethereum contract</h3>
+
+<p>To interact with a contract deployed on the blockchain, you’ll need to know the <code class="language-plaintext highlighter-rouge">address</code>
+of the contract itself, and need to specify a <code class="language-plaintext highlighter-rouge">backend</code> through which to access Ethereum.
+The binding generator provides out of the box an RPC backend through which you can attach
+to an existing Ethereum node via IPC, HTTP or WebSockets.</p>
+
+<p>We’ll use the foundation’s Unicorn token contract deployed
+on the testnet to demonstrate calling contract methods. It is deployed at the address
+<code class="language-plaintext highlighter-rouge">0x21e6fc92f93c8a1bb41e2be64b4e1f88a54d3576</code>.</p>
+
+<p>To run the snippet below, please ensure a Geth instance is running and attached to the
+Morden test network where the above mentioned contract was deployed. Also please update
+the path to the IPC socket below to the one reported by your own local Geth node.</p>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">package</span> <span class="n">main</span>
+
+<span class="k">import</span> <span class="p">(</span>
+	<span class="s">"fmt"</span>
+	<span class="s">"log"</span>
+
+	<span class="s">"github.com/ethereum/go-ethereum/common"</span>
+	<span class="s">"github.com/ethereum/go-ethereum/ethclient"</span>
+<span class="p">)</span>
+
+<span class="k">func</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+	<span class="c">// Create an IPC based RPC connection to a remote node</span>
+	<span class="n">conn</span><span class="p">,</span> <span class="n">err</span> <span class="o">:=</span> <span class="n">ethclient</span><span class="o">.</span><span class="n">Dial</span><span class="p">(</span><span class="s">"/home/karalabe/.ethereum/testnet/geth.ipc"</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">err</span> <span class="o">!=</span> <span class="no">nil</span> <span class="p">{</span>
+		<span class="n">log</span><span class="o">.</span><span class="n">Fatalf</span><span class="p">(</span><span class="s">"Failed to connect to the Ethereum client: %v"</span><span class="p">,</span> <span class="n">err</span><span class="p">)</span>
+	<span class="p">}</span>
+	<span class="c">// Instantiate the contract and display its name</span>
+	<span class="n">token</span><span class="p">,</span> <span class="n">err</span> <span class="o">:=</span> <span class="n">NewToken</span><span class="p">(</span><span class="n">common</span><span class="o">.</span><span class="n">HexToAddress</span><span class="p">(</span><span class="s">"0x21e6fc92f93c8a1bb41e2be64b4e1f88a54d3576"</span><span class="p">),</span> <span class="n">conn</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">err</span> <span class="o">!=</span> <span class="no">nil</span> <span class="p">{</span>
+		<span class="n">log</span><span class="o">.</span><span class="n">Fatalf</span><span class="p">(</span><span class="s">"Failed to instantiate a Token contract: %v"</span><span class="p">,</span> <span class="n">err</span><span class="p">)</span>
+	<span class="p">}</span>
+	<span class="n">name</span><span class="p">,</span> <span class="n">err</span> <span class="o">:=</span> <span class="n">token</span><span class="o">.</span><span class="n">Name</span><span class="p">(</span><span class="no">nil</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">err</span> <span class="o">!=</span> <span class="no">nil</span> <span class="p">{</span>
+		<span class="n">log</span><span class="o">.</span><span class="n">Fatalf</span><span class="p">(</span><span class="s">"Failed to retrieve token name: %v"</span><span class="p">,</span> <span class="n">err</span><span class="p">)</span>
+	<span class="p">}</span>
+	<span class="n">fmt</span><span class="o">.</span><span class="n">Println</span><span class="p">(</span><span class="s">"Token name:"</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>And the output (yay):</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Token name: Testnet Unicorn
+</code></pre></div></div>
+
+<p>If you look at the method invoked to read the token name <code class="language-plaintext highlighter-rouge">token.Name(nil)</code>, it required
+a parameter to be passed, even though the original Solidity contract requires none. This
+is a <code class="language-plaintext highlighter-rouge">*bind.CallOpts</code> type, which can be used to fine tune the call.</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">Pending</code>: Whether to access pending contract state or the current stable one</li>
+  <li><code class="language-plaintext highlighter-rouge">GasLimit</code>: Place a limit on the computing resources the call might consume</li>
+</ul>
+
+<h3 id="transacting-with-an-ethereum-contract">Transacting with an Ethereum contract</h3>
+
+<p>Invoking a method that changes contract state (i.e. transacting) is a bit more involved,
+as a live transaction needs to be authorized and broadcast into the network. <strong>Opposed
+to the conventional way of storing accounts and keys in the node we attach to, Go bindings
+require signing transactions locally and do not delegate this to a remote node.</strong> This is
+done so to facilitate the general direction of the Ethereum community where accounts are
+kept private to DApps, and not shared (by default) between them.</p>
+
+<p>Thus to allow transacting with a contract, your code needs to implement a method that
+given an input transaction, signs it and returns an authorized output transaction. Since
+most users have their keys in the <a href="https://github.com/ethereum/wiki/wiki/Web3-Secret-Storage-Definition">Web3 Secret Storage</a> format, the <code class="language-plaintext highlighter-rouge">bind</code> package contains a small utility method 
+(<code class="language-plaintext highlighter-rouge">bind.NewTransactor(keyjson, passphrase)</code>) that can create an authorized transactor from
+a key file and associated password, without the user needing to implement key signing himself.</p>
+
+<p>Changing the previous code snippet to send one unicorn to the zero address:</p>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">package</span> <span class="n">main</span>
+
+<span class="k">import</span> <span class="p">(</span>
+	<span class="s">"fmt"</span>
+	<span class="s">"log"</span>
+	<span class="s">"math/big"</span>
+	<span class="s">"strings"</span>
+
+	<span class="s">"github.com/ethereum/go-ethereum/accounts/abi/bind"</span>
+	<span class="s">"github.com/ethereum/go-ethereum/common"</span>
+	<span class="s">"github.com/ethereum/go-ethereum/ethclient"</span>
+<span class="p">)</span>
+
+<span class="k">const</span> <span class="n">key</span> <span class="o">=</span> <span class="s">`paste the contents of your *testnet* key json here`</span>
+
+<span class="k">func</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+	<span class="c">// Create an IPC based RPC connection to a remote node and instantiate a contract binding</span>
+	<span class="n">conn</span><span class="p">,</span> <span class="n">err</span> <span class="o">:=</span> <span class="n">ethclient</span><span class="o">.</span><span class="n">Dial</span><span class="p">(</span><span class="s">"/home/karalabe/.ethereum/testnet/geth.ipc"</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">err</span> <span class="o">!=</span> <span class="no">nil</span> <span class="p">{</span>
+		<span class="n">log</span><span class="o">.</span><span class="n">Fatalf</span><span class="p">(</span><span class="s">"Failed to connect to the Ethereum client: %v"</span><span class="p">,</span> <span class="n">err</span><span class="p">)</span>
+	<span class="p">}</span>
+	<span class="n">token</span><span class="p">,</span> <span class="n">err</span> <span class="o">:=</span> <span class="n">NewToken</span><span class="p">(</span><span class="n">common</span><span class="o">.</span><span class="n">HexToAddress</span><span class="p">(</span><span class="s">"0x21e6fc92f93c8a1bb41e2be64b4e1f88a54d3576"</span><span class="p">),</span> <span class="n">conn</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">err</span> <span class="o">!=</span> <span class="no">nil</span> <span class="p">{</span>
+		<span class="n">log</span><span class="o">.</span><span class="n">Fatalf</span><span class="p">(</span><span class="s">"Failed to instantiate a Token contract: %v"</span><span class="p">,</span> <span class="n">err</span><span class="p">)</span>
+	<span class="p">}</span>
+	<span class="c">// Create an authorized transactor and spend 1 unicorn</span>
+	<span class="n">auth</span><span class="p">,</span> <span class="n">err</span> <span class="o">:=</span> <span class="n">bind</span><span class="o">.</span><span class="n">NewTransactor</span><span class="p">(</span><span class="n">strings</span><span class="o">.</span><span class="n">NewReader</span><span class="p">(</span><span class="n">key</span><span class="p">),</span> <span class="s">"my awesome super secret password"</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">err</span> <span class="o">!=</span> <span class="no">nil</span> <span class="p">{</span>
+		<span class="n">log</span><span class="o">.</span><span class="n">Fatalf</span><span class="p">(</span><span class="s">"Failed to create authorized transactor: %v"</span><span class="p">,</span> <span class="n">err</span><span class="p">)</span>
+	<span class="p">}</span>
+	<span class="n">tx</span><span class="p">,</span> <span class="n">err</span> <span class="o">:=</span> <span class="n">token</span><span class="o">.</span><span class="n">Transfer</span><span class="p">(</span><span class="n">auth</span><span class="p">,</span> <span class="n">common</span><span class="o">.</span><span class="n">HexToAddress</span><span class="p">(</span><span class="s">"0x0000000000000000000000000000000000000000"</span><span class="p">),</span> <span class="n">big</span><span class="o">.</span><span class="n">NewInt</span><span class="p">(</span><span class="m">1</span><span class="p">))</span>
+	<span class="k">if</span> <span class="n">err</span> <span class="o">!=</span> <span class="no">nil</span> <span class="p">{</span>
+		<span class="n">log</span><span class="o">.</span><span class="n">Fatalf</span><span class="p">(</span><span class="s">"Failed to request token transfer: %v"</span><span class="p">,</span> <span class="n">err</span><span class="p">)</span>
+	<span class="p">}</span>
+	<span class="n">fmt</span><span class="o">.</span><span class="n">Printf</span><span class="p">(</span><span class="s">"Transfer pending: 0x%x</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">tx</span><span class="o">.</span><span class="n">Hash</span><span class="p">())</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>And the output (yay):</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Transfer pending: 0x4f4aaeb29ed48e88dd653a81f0b05d4df64a86c99d4e83b5bfeb0f0006b0e55b
+</code></pre></div></div>
+
+<p><em>Note, with high probability you won’t have any testnet unicorns available to spend, so the
+above program will fail with an error. Send at least 2.014 testnet(!) Ethers to the foundation
+testnet tipjar <code class="language-plaintext highlighter-rouge">0xDf7D0030bfed998Db43288C190b63470c2d18F50</code> to receive a unicorn token and
+you’ll be able to see the above code run without an error!</em></p>
+
+<p>Similar to the method invocations in the previous section which only read contract state,
+transacting methods also require a mandatory first parameter, a <code class="language-plaintext highlighter-rouge">*bind.TransactOpts</code> type,
+which authorizes the transaction and potentially fine tunes it:</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">From</code>: Address of the account to invoke the method with (mandatory)</li>
+  <li><code class="language-plaintext highlighter-rouge">Signer</code>: Method to sign a transaction locally before broadcasting it (mandatory)</li>
+  <li><code class="language-plaintext highlighter-rouge">Nonce</code>: Account nonce to use for the transaction ordering (optional)</li>
+  <li><code class="language-plaintext highlighter-rouge">GasLimit</code>: Place a limit on the computing resources the call might consume (optional)</li>
+  <li><code class="language-plaintext highlighter-rouge">GasPrice</code>: Explicitly set the gas price to run the transaction with (optional)</li>
+  <li><code class="language-plaintext highlighter-rouge">Value</code>: Any funds to transfer along with the method call (optional)</li>
+</ul>
+
+<p>The two mandatory fields are automatically set by the <code class="language-plaintext highlighter-rouge">bind</code> package if the auth options are
+constructed using <code class="language-plaintext highlighter-rouge">bind.NewTransactor</code>. The nonce and gas related fields are automatically
+derived by the binding if they are not set. An unset value is assumed to be zero.</p>
+
+<h3 id="pre-configured-contract-sessions">Pre-configured contract sessions</h3>
+
+<p>As mentioned in the previous two sections, both reading as well as state modifying contract
+calls require a mandatory first parameter which can both authorize as well as fine tune some
+of the internal parameters. However, most of the time we want to use the same parameters and
+issue transactions with the same account, so always constructing the call/transact options or
+passing them along with the binding can become unwieldy.</p>
+
+<p>To avoid these scenarios, the generator also creates specialized wrappers that can be pre-
+configured with tuning and authorization parameters, allowing all the Solidity defined methods
+to be invoked without needing an extra parameter.</p>
+
+<p>These are named analogous to the original contract type name, just suffixed with <code class="language-plaintext highlighter-rouge">Sessions</code>:</p>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">// Wrap the Token contract instance into a session</span>
+<span class="n">session</span> <span class="o">:=</span> <span class="o">&amp;</span><span class="n">TokenSession</span><span class="p">{</span>
+	<span class="n">Contract</span><span class="o">:</span> <span class="n">token</span><span class="p">,</span>
+	<span class="n">CallOpts</span><span class="o">:</span> <span class="n">bind</span><span class="o">.</span><span class="n">CallOpts</span><span class="p">{</span>
+		<span class="n">Pending</span><span class="o">:</span> <span class="no">true</span><span class="p">,</span>
+	<span class="p">},</span>
+	<span class="n">TransactOpts</span><span class="o">:</span> <span class="n">bind</span><span class="o">.</span><span class="n">TransactOpts</span><span class="p">{</span>
+		<span class="n">From</span><span class="o">:</span>     <span class="n">auth</span><span class="o">.</span><span class="n">From</span><span class="p">,</span>
+		<span class="n">Signer</span><span class="o">:</span>   <span class="n">auth</span><span class="o">.</span><span class="n">Signer</span><span class="p">,</span>
+		<span class="n">GasLimit</span><span class="o">:</span> <span class="n">big</span><span class="o">.</span><span class="n">NewInt</span><span class="p">(</span><span class="m">3141592</span><span class="p">),</span>
+	<span class="p">},</span>
+<span class="p">}</span>
+<span class="c">// Call the previous methods without the option parameters</span>
+<span class="n">session</span><span class="o">.</span><span class="n">Name</span><span class="p">()</span>
+<span class="n">session</span><span class="o">.</span><span class="n">Transfer</span><span class="p">(</span><span class="s">"0x0000000000000000000000000000000000000000"</span><span class="p">),</span> <span class="n">big</span><span class="o">.</span><span class="n">NewInt</span><span class="p">(</span><span class="m">1</span><span class="p">))</span>
+</code></pre></div></div>
+
+<h3 id="deploying-contracts-to-ethereum">Deploying contracts to Ethereum</h3>
+
+<p>Interacting with existing contracts is nice, but let’s take it up a notch and deploy
+a brand new contract onto the Ethereum blockchain! To do so however, the contract ABI
+we used to generate the binding is not enough. We need the compiled bytecode too to
+allow deploying it.</p>
+
+<p>To get the bytecode, either go back to the online compiler with which you may generate it,
+or alternatively download our <a href="https://gist.github.com/karalabe/026548f6a5f5f97b54de"><code class="language-plaintext highlighter-rouge">token.bin</code></a>.
+You’ll need to rerun the Go generator with the bytecode included for it to create deploy
+code too:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ abigen --abi token.abi --pkg main --type Token --out token.go --bin token.bin
+</code></pre></div></div>
+
+<p>This will generate something similar to <a href="https://gist.github.com/karalabe/2153b087c1f80f651fd87dd4c439fac4"><code class="language-plaintext highlighter-rouge">token.go</code></a>.
+If you quickly skim this file, you’ll find an extra <code class="language-plaintext highlighter-rouge">DeployToken</code> function that was just
+injected compared to the previous code. Beside all the parameters specified by Solidity,
+it also needs the usual authorization options to deploy the contract with and the Ethereum
+backend to deploy the contract through.</p>
+
+<p>Putting it all together would result in:</p>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">package</span> <span class="n">main</span>
+
+<span class="k">import</span> <span class="p">(</span>
+	<span class="s">"fmt"</span>
+	<span class="s">"log"</span>
+	<span class="s">"math/big"</span>
+	<span class="s">"strings"</span>
+	<span class="s">"time"</span>
+
+	<span class="s">"github.com/ethereum/go-ethereum/accounts/abi/bind"</span>
+	<span class="s">"github.com/ethereum/go-ethereum/ethclient"</span>
+<span class="p">)</span>
+
+<span class="k">const</span> <span class="n">key</span> <span class="o">=</span> <span class="s">`paste the contents of your *testnet* key json here`</span>
+
+<span class="k">func</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+	<span class="c">// Create an IPC based RPC connection to a remote node and an authorized transactor</span>
+	<span class="n">conn</span><span class="p">,</span> <span class="n">err</span> <span class="o">:=</span> <span class="n">rpc</span><span class="o">.</span><span class="n">NewIPCClient</span><span class="p">(</span><span class="s">"/home/karalabe/.ethereum/testnet/geth.ipc"</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">err</span> <span class="o">!=</span> <span class="no">nil</span> <span class="p">{</span>
+		<span class="n">log</span><span class="o">.</span><span class="n">Fatalf</span><span class="p">(</span><span class="s">"Failed to connect to the Ethereum client: %v"</span><span class="p">,</span> <span class="n">err</span><span class="p">)</span>
+	<span class="p">}</span>
+	<span class="n">auth</span><span class="p">,</span> <span class="n">err</span> <span class="o">:=</span> <span class="n">bind</span><span class="o">.</span><span class="n">NewTransactor</span><span class="p">(</span><span class="n">strings</span><span class="o">.</span><span class="n">NewReader</span><span class="p">(</span><span class="n">key</span><span class="p">),</span> <span class="s">"my awesome super secret password"</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">err</span> <span class="o">!=</span> <span class="no">nil</span> <span class="p">{</span>
+		<span class="n">log</span><span class="o">.</span><span class="n">Fatalf</span><span class="p">(</span><span class="s">"Failed to create authorized transactor: %v"</span><span class="p">,</span> <span class="n">err</span><span class="p">)</span>
+	<span class="p">}</span>
+	<span class="c">// Deploy a new awesome contract for the binding demo</span>
+	<span class="n">address</span><span class="p">,</span> <span class="n">tx</span><span class="p">,</span> <span class="n">token</span><span class="p">,</span> <span class="n">err</span> <span class="o">:=</span> <span class="n">DeployToken</span><span class="p">(</span><span class="n">auth</span><span class="p">,</span> <span class="n">conn</span><span class="p">),</span> <span class="nb">new</span><span class="p">(</span><span class="n">big</span><span class="o">.</span><span class="n">Int</span><span class="p">),</span> <span class="s">"Contracts in Go!!!"</span><span class="p">,</span> <span class="m">0</span><span class="p">,</span> <span class="s">"Go!"</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">err</span> <span class="o">!=</span> <span class="no">nil</span> <span class="p">{</span>
+		<span class="n">log</span><span class="o">.</span><span class="n">Fatalf</span><span class="p">(</span><span class="s">"Failed to deploy new token contract: %v"</span><span class="p">,</span> <span class="n">err</span><span class="p">)</span>
+	<span class="p">}</span>
+	<span class="n">fmt</span><span class="o">.</span><span class="n">Printf</span><span class="p">(</span><span class="s">"Contract pending deploy: 0x%x</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">address</span><span class="p">)</span>
+	<span class="n">fmt</span><span class="o">.</span><span class="n">Printf</span><span class="p">(</span><span class="s">"Transaction waiting to be mined: 0x%x</span><span class="se">\n\n</span><span class="s">"</span><span class="p">,</span> <span class="n">tx</span><span class="o">.</span><span class="n">Hash</span><span class="p">())</span>
+
+	<span class="c">// Don't even wait, check its presence in the local pending state</span>
+	<span class="n">time</span><span class="o">.</span><span class="n">Sleep</span><span class="p">(</span><span class="m">250</span> <span class="o">*</span> <span class="n">time</span><span class="o">.</span><span class="n">Millisecond</span><span class="p">)</span> <span class="c">// Allow it to be processed by the local node :P</span>
+
+	<span class="n">name</span><span class="p">,</span> <span class="n">err</span> <span class="o">:=</span> <span class="n">token</span><span class="o">.</span><span class="n">Name</span><span class="p">(</span><span class="o">&amp;</span><span class="n">bind</span><span class="o">.</span><span class="n">CallOpts</span><span class="p">{</span><span class="n">Pending</span><span class="o">:</span> <span class="no">true</span><span class="p">})</span>
+	<span class="k">if</span> <span class="n">err</span> <span class="o">!=</span> <span class="no">nil</span> <span class="p">{</span>
+		<span class="n">log</span><span class="o">.</span><span class="n">Fatalf</span><span class="p">(</span><span class="s">"Failed to retrieve pending name: %v"</span><span class="p">,</span> <span class="n">err</span><span class="p">)</span>
+	<span class="p">}</span>
+	<span class="n">fmt</span><span class="o">.</span><span class="n">Println</span><span class="p">(</span><span class="s">"Pending name:"</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>And the code performs as expected: it requests the creation of a brand new Token contract
+on the Ethereum blockchain, which we can either wait for to be mined or as in the above code
+start calling methods on it in the pending state :)</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Contract pending deploy: 0x46506d900559ad005feb4645dcbb2dbbf65e19cc
+Transaction waiting to be mined: 0x6a81231874edd2461879b7280ddde1a857162a744e3658ca7ec276984802183b
+
+Pending name: Contracts in Go!!!
+</code></pre></div></div>
+
+<h2 id="bind-solidity-directly">Bind Solidity directly</h2>
+
+<p>If you’ve followed the tutorial along until this point you’ve probably realized that
+every contract modification needs to be recompiled, the produced ABIs and bytecodes
+(especially if you need multiple contracts) individually saved to files and then the
+binding executed for them. This can become a quite bothersome after the Nth iteration,
+so the <code class="language-plaintext highlighter-rouge">abigen</code> command supports binding from Solidity source files directly (<code class="language-plaintext highlighter-rouge">--sol</code>),
+which first compiles the source code (via <code class="language-plaintext highlighter-rouge">--solc</code>, defaulting to <code class="language-plaintext highlighter-rouge">solc</code>) into it’s
+constituent components and binds using that.</p>
+
+<p>Binding the official Token contract <a href="https://gist.github.com/karalabe/08f4b780e01c8452d989"><code class="language-plaintext highlighter-rouge">token.sol</code></a>
+would then entail to running:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ abigen --sol token.sol --pkg main --out token.go
+</code></pre></div></div>
+
+<p><em>Note: Building from Solidity (<code class="language-plaintext highlighter-rouge">--sol</code>) is mutually exclusive with individually setting
+the bind components (<code class="language-plaintext highlighter-rouge">--abi</code>, <code class="language-plaintext highlighter-rouge">--bin</code> and <code class="language-plaintext highlighter-rouge">--type</code>), as all of them are extracted from
+the Solidity code and produced build results directly.</em></p>
+
+<p>Building a contract directly from Solidity has the nice side effect that all contracts
+contained within a Solidity source file are built and bound, so if your file contains many
+contract sources, each and every one of them will be available from Go code. The sample
+Token solidity file results in <a href="https://gist.github.com/karalabe/c22aab73194ba7da834ab5b379621031"><code class="language-plaintext highlighter-rouge">token.go</code></a>.</p>
+
+<h3 id="project-integration-ie-go-generate">Project integration (i.e. <code class="language-plaintext highlighter-rouge">go generate</code>)</h3>
+
+<p>The <code class="language-plaintext highlighter-rouge">abigen</code> command was made in such a way as to play beautifully together with existing
+Go toolchains: instead of having to remember the exact command needed to bind an Ethereum
+contract into a Go project, we can leverage <code class="language-plaintext highlighter-rouge">go generate</code> to remember all the nitty-gritty
+details.</p>
+
+<p>Place the binding generation command into a Go source file before the package definition:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>//go:generate abigen --sol token.sol --pkg main --out token.go
+</code></pre></div></div>
+
+<p>After which whenever the Solidity contract is modified, instead of needing to remember and
+run the above command, we can simply call <code class="language-plaintext highlighter-rouge">go generate</code> on the package (or even the entire
+source tree via <code class="language-plaintext highlighter-rouge">go generate ./...</code>), and it will correctly generate the new bindings for us.</p>
+
+<h2 id="blockchain-simulator">Blockchain simulator</h2>
+
+<p>Being able to deploy and access already deployed Ethereum contracts from within native Go
+code is an extremely powerful feature, but there is one facet with developing native code
+that not even the testnet lends itself well to: <em>automatic unit testing</em>. Using go-ethereum
+internal constructs it’s possible to create test chains and verify them, but it is unfeasible
+to do high level contract testing with such low level mechanisms.</p>
+
+<p>To sort out this last issue that would make it hard to run (and test) native DApps, we’ve also
+implemented a <em>simulated blockchain</em>, that can be set as a backend to native contracts the same
+way as a live RPC backend could be: <code class="language-plaintext highlighter-rouge">backends.NewSimulatedBackend(genesisAccounts)</code>.</p>
+
+<div class="language-go highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">package</span> <span class="n">main</span>
+
+<span class="k">import</span> <span class="p">(</span>
+	<span class="s">"fmt"</span>
+	<span class="s">"log"</span>
+	<span class="s">"math/big"</span>
+
+	<span class="s">"github.com/ethereum/go-ethereum/accounts/abi/bind"</span>
+	<span class="s">"github.com/ethereum/go-ethereum/accounts/abi/bind/backends"</span>
+	<span class="s">"github.com/ethereum/go-ethereum/core"</span>
+	<span class="s">"github.com/ethereum/go-ethereum/crypto"</span>
+<span class="p">)</span>
+
+<span class="k">func</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+	<span class="c">// Generate a new random account and a funded simulator</span>
+	<span class="n">key</span><span class="p">,</span> <span class="n">_</span> <span class="o">:=</span> <span class="n">crypto</span><span class="o">.</span><span class="n">GenerateKey</span><span class="p">()</span>
+	<span class="n">auth</span> <span class="o">:=</span> <span class="n">bind</span><span class="o">.</span><span class="n">NewKeyedTransactor</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+
+	<span class="n">sim</span> <span class="o">:=</span> <span class="n">backends</span><span class="o">.</span><span class="n">NewSimulatedBackend</span><span class="p">(</span><span class="n">core</span><span class="o">.</span><span class="n">GenesisAccount</span><span class="p">{</span><span class="n">Address</span><span class="o">:</span> <span class="n">auth</span><span class="o">.</span><span class="n">From</span><span class="p">,</span> <span class="n">Balance</span><span class="o">:</span> <span class="n">big</span><span class="o">.</span><span class="n">NewInt</span><span class="p">(</span><span class="m">10000000000</span><span class="p">)})</span>
+
+	<span class="c">// Deploy a token contract on the simulated blockchain</span>
+	<span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">token</span><span class="p">,</span> <span class="n">err</span> <span class="o">:=</span> <span class="n">DeployMyToken</span><span class="p">(</span><span class="n">auth</span><span class="p">,</span> <span class="n">sim</span><span class="p">,</span> <span class="nb">new</span><span class="p">(</span><span class="n">big</span><span class="o">.</span><span class="n">Int</span><span class="p">),</span> <span class="s">"Simulated blockchain tokens"</span><span class="p">,</span> <span class="m">0</span><span class="p">,</span> <span class="s">"SBT"</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">err</span> <span class="o">!=</span> <span class="no">nil</span> <span class="p">{</span>
+		<span class="n">log</span><span class="o">.</span><span class="n">Fatalf</span><span class="p">(</span><span class="s">"Failed to deploy new token contract: %v"</span><span class="p">,</span> <span class="n">err</span><span class="p">)</span>
+	<span class="p">}</span>
+	<span class="c">// Print the current (non existent) and pending name of the contract</span>
+	<span class="n">name</span><span class="p">,</span> <span class="n">_</span> <span class="o">:=</span> <span class="n">token</span><span class="o">.</span><span class="n">Name</span><span class="p">(</span><span class="no">nil</span><span class="p">)</span>
+	<span class="n">fmt</span><span class="o">.</span><span class="n">Println</span><span class="p">(</span><span class="s">"Pre-mining name:"</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
+	<span class="n">name</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">token</span><span class="o">.</span><span class="n">Name</span><span class="p">(</span><span class="o">&amp;</span><span class="n">bind</span><span class="o">.</span><span class="n">CallOpts</span><span class="p">{</span><span class="n">Pending</span><span class="o">:</span> <span class="no">true</span><span class="p">})</span>
+	<span class="n">fmt</span><span class="o">.</span><span class="n">Println</span><span class="p">(</span><span class="s">"Pre-mining pending name:"</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
+	<span class="c">// Commit all pending transactions in the simulator and print the names again</span>
+	<span class="n">sim</span><span class="o">.</span><span class="n">Commit</span><span class="p">()</span>
+
+	<span class="n">name</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">token</span><span class="o">.</span><span class="n">Name</span><span class="p">(</span><span class="no">nil</span><span class="p">)</span>
+	<span class="n">fmt</span><span class="o">.</span><span class="n">Println</span><span class="p">(</span><span class="s">"Post-mining name:"</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
+	<span class="n">name</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">token</span><span class="o">.</span><span class="n">Name</span><span class="p">(</span><span class="o">&amp;</span><span class="n">bind</span><span class="o">.</span><span class="n">CallOpts</span><span class="p">{</span><span class="n">Pending</span><span class="o">:</span> <span class="no">true</span><span class="p">})</span>
+	<span class="n">fmt</span><span class="o">.</span><span class="n">Println</span><span class="p">(</span><span class="s">"Post-mining pending name:"</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>And the output (yay):</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Pre-mining name: 
+Pre-mining pending name: Simulated blockchain tokens
+Post-mining name: Simulated blockchain tokens
+Post-mining pending name: Simulated blockchain tokens
+</code></pre></div></div>
+
+<p>Note, that we don’t have to wait for a local private chain miner, or testnet miner to
+integrate the currently pending transactions. When we decide to mine the next block,
+we simply <code class="language-plaintext highlighter-rouge">Commit()</code> the simulator.</p>
+
+    </div>

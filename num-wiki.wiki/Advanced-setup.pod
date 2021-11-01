@@ -1,0 +1,209 @@
+  <div class="col-md-9" id="content">
+      
+      <p>This document describes how Clef can be used in a more secure manner than executing it from your everyday laptop, 
+in order to ensure that the keys remain safe in the event that your computer should get compromised.</p>
+
+<h2 id="qubes-os">Qubes OS</h2>
+
+<h3 id="background">Background</h3>
+
+<p>The Qubes operating system is based around virtual machines (qubes), where a set of virtual machines are configured, typically for 
+different purposes such as:</p>
+
+<ul>
+  <li>personal
+    <ul>
+      <li>Your personal email, browsing etc</li>
+    </ul>
+  </li>
+  <li>work
+    <ul>
+      <li>Work email etc</li>
+    </ul>
+  </li>
+  <li>vault
+    <ul>
+      <li>a VM without network access, where gpg-keys and/or keepass credentials are stored.</li>
+    </ul>
+  </li>
+</ul>
+
+<p>A couple of dedicated virtual machines handle externalities:</p>
+
+<ul>
+  <li>sys-net provides networking to all other (network-enabled) machines</li>
+  <li>sys-firewall handles firewall rules</li>
+  <li>sys-usb handles USB devices, and can map usb-devices to certain qubes.</li>
+</ul>
+
+<p>The goal of this document is to describe how we can set up clef to provide secure transaction
+signing from a <code class="language-plaintext highlighter-rouge">vault</code> vm, to another networked qube which runs Dapps.</p>
+
+<h3 id="setup">Setup</h3>
+
+<p>There are two ways that this can be achieved: integrated via Qubes or integrated via networking.</p>
+
+<h4 id="1-qubes-integrated">1. Qubes Integrated</h4>
+
+<p>Qubes provides a facility for inter-qubes communication via <code class="language-plaintext highlighter-rouge">qrexec</code>. A qube can request to make a cross-qube RPC request 
+to another qube. The OS then asks the user if the call is permitted.</p>
+
+<p><img src="./Advanced setup _ Go Ethereum_files/qrexec-example.png" alt="Example"></p>
+
+<p>A policy-file can be created to allow such interaction. On the <code class="language-plaintext highlighter-rouge">target</code> domain, a service is invoked which can read the
+<code class="language-plaintext highlighter-rouge">stdin</code> from the <code class="language-plaintext highlighter-rouge">client</code> qube.</p>
+
+<p>This is how <a href="https://www.qubes-os.org/doc/split-gpg/">Split GPG</a> is implemented. We can set up Clef the same way:</p>
+
+<h5 id="server">Server</h5>
+
+<p><img src="./Advanced setup _ Go Ethereum_files/clef_qubes_qrexec.png" alt="Clef via qrexec"></p>
+
+<p>On the <code class="language-plaintext highlighter-rouge">target</code> qubes, we need to define the RPC service.</p>
+
+<p><a href="https://geth.ethereum.org/docs/clef/qubes.Clefsign">qubes.Clefsign</a>:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">#!/bin/bash</span>
+
+<span class="nv">SIGNER_BIN</span><span class="o">=</span><span class="s2">"/home/user/tools/clef/clef"</span>
+<span class="nv">SIGNER_CMD</span><span class="o">=</span><span class="s2">"/home/user/tools/gtksigner/gtkui.py -s </span><span class="nv">$SIGNER_BIN</span><span class="s2">"</span>
+
+<span class="c"># Start clef if not already started</span>
+<span class="k">if</span> <span class="o">[</span> <span class="o">!</span> <span class="nt">-S</span> /home/user/.clef/clef.ipc <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
+	<span class="nv">$SIGNER_CMD</span> &amp;
+	<span class="nb">sleep </span>1
+<span class="k">fi</span>
+
+<span class="c"># Should be started by now</span>
+<span class="k">if</span> <span class="o">[</span> <span class="nt">-S</span> /home/user/.clef/clef.ipc <span class="o">]</span><span class="p">;</span> <span class="k">then</span>
+    <span class="c"># Post incoming request to HTTP channel</span>
+	curl <span class="nt">-H</span> <span class="s2">"Content-Type: application/json"</span> <span class="nt">-X</span> POST <span class="nt">-d</span> @- http://localhost:8550 2&gt;/dev/null
+<span class="k">fi</span>
+
+</code></pre></div></div>
+<p>This RPC service is not complete (see notes about HTTP headers below), but works as a proof-of-concept. 
+It will forward the data received on <code class="language-plaintext highlighter-rouge">stdin</code> (forwarded by the OS) to Clef’s HTTP channel.</p>
+
+<p>It would have been possible to send data directly to the <code class="language-plaintext highlighter-rouge">/home/user/.clef/.clef.ipc</code> 
+socket via e.g <code class="language-plaintext highlighter-rouge">nc -U /home/user/.clef/clef.ipc</code>, but the reason for sending the request 
+data over <code class="language-plaintext highlighter-rouge">HTTP</code> instead of <code class="language-plaintext highlighter-rouge">IPC</code> is that we want the ability to forward <code class="language-plaintext highlighter-rouge">HTTP</code> headers.</p>
+
+<p>To enable the service:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo cp </span>qubes.Clefsign /etc/qubes-rpc/
+<span class="nb">sudo chmod</span> +x /etc/qubes-rpc/ qubes.Clefsign
+</code></pre></div></div>
+
+<p>This setup uses <a href="https://github.com/holiman/gtksigner">gtksigner</a>, which is a very minimal GTK-based UI that works well 
+with minimal requirements.</p>
+
+<h5 id="client">Client</h5>
+
+<p>On the <code class="language-plaintext highlighter-rouge">client</code> qube, we need to create a listener which will receive the request from the Dapp, and proxy it.</p>
+
+<p><a href="https://geth.ethereum.org/docs/clef/qubes-client.py">qubes-client.py</a>:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="s">"""
+This implements a dispatcher which listens to localhost:8550, and proxies
+requests via qrexec to the service qubes.EthSign on a target domain
+"""</span>
+
+<span class="kn">import</span> <span class="nn">http.server</span>
+<span class="kn">import</span> <span class="nn">socketserver</span><span class="p">,</span><span class="n">subprocess</span>
+
+<span class="n">PORT</span><span class="o">=</span><span class="mi">8550</span>
+<span class="n">TARGET_DOMAIN</span><span class="o">=</span> <span class="s">'debian-work'</span>
+
+<span class="k">class</span> <span class="nc">Dispatcher</span><span class="p">(</span><span class="n">http</span><span class="p">.</span><span class="n">server</span><span class="p">.</span><span class="n">BaseHTTPRequestHandler</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">do_POST</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">post_data</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">rfile</span><span class="p">.</span><span class="n">read</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">headers</span><span class="p">[</span><span class="s">'Content-Length'</span><span class="p">]))</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">subprocess</span><span class="p">.</span><span class="n">Popen</span><span class="p">([</span><span class="s">'/usr/bin/qrexec-client-vm'</span><span class="p">,</span><span class="n">TARGET_DOMAIN</span><span class="p">,</span><span class="s">'qubes.Clefsign'</span><span class="p">],</span><span class="n">stdin</span><span class="o">=</span><span class="n">subprocess</span><span class="p">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="p">.</span><span class="n">PIPE</span><span class="p">)</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">p</span><span class="p">.</span><span class="n">communicate</span><span class="p">(</span><span class="n">post_data</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">wfile</span><span class="p">.</span><span class="n">write</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+
+
+<span class="k">with</span> <span class="n">socketserver</span><span class="p">.</span><span class="n">TCPServer</span><span class="p">((</span><span class="s">""</span><span class="p">,</span><span class="n">PORT</span><span class="p">),</span> <span class="n">Dispatcher</span><span class="p">)</span> <span class="k">as</span> <span class="n">httpd</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">"Serving at port"</span><span class="p">,</span> <span class="n">PORT</span><span class="p">)</span>
+    <span class="n">httpd</span><span class="p">.</span><span class="n">serve_forever</span><span class="p">()</span>
+
+
+</code></pre></div></div>
+
+<h4 id="testing">Testing</h4>
+
+<p>To test the flow, if we have set up <code class="language-plaintext highlighter-rouge">debian-work</code> as the <code class="language-plaintext highlighter-rouge">target</code>, we can do</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="nb">cat </span>newaccnt.json 
+<span class="o">{</span> <span class="s2">"id"</span>: 0, <span class="s2">"jsonrpc"</span>: <span class="s2">"2.0"</span>,<span class="s2">"method"</span>: <span class="s2">"account_new"</span>,<span class="s2">"params"</span>: <span class="o">[]}</span>
+
+<span class="nv">$ </span><span class="nb">cat </span>newaccnt.json| qrexec-client-vm debian-work qubes.Clefsign
+</code></pre></div></div>
+
+<p>A dialog should pop up first to allow the IPC call:</p>
+
+<p><img src="./Advanced setup _ Go Ethereum_files/qubes_newaccount-1.png" alt="one"></p>
+
+<p>Followed by a GTK-dialog to approve the operation:</p>
+
+<p><img src="./Advanced setup _ Go Ethereum_files/qubes_newaccount-2.png" alt="two"></p>
+
+<p>To test the full flow, we use the client wrapper. Start it on the <code class="language-plaintext highlighter-rouge">client</code> qube:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[user@work qubes]$ python3 qubes-client.py 
+</code></pre></div></div>
+
+<p>Make the request over http (<code class="language-plaintext highlighter-rouge">client</code> qube):</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[user@work clef]$ cat newaccnt.json | curl -X POST -d @- http://localhost:8550
+</code></pre></div></div>
+<p>And it should show the same popups again.</p>
+
+<h5 id="pros-and-cons">Pros and cons</h5>
+
+<p>The benefits of this setup are:</p>
+
+<ul>
+  <li>This is the qubes-os intended model for inter-qube communication,</li>
+  <li>and thus benefits from qubes-os dialogs and policies for user approval</li>
+</ul>
+
+<p>However, it comes with a couple of drawbacks:</p>
+
+<ul>
+  <li>The <code class="language-plaintext highlighter-rouge">qubes-gpg-client</code> must forward the http request via RPC to the <code class="language-plaintext highlighter-rouge">target</code> qube. When doing so, the proxy
+will either drop important headers, or replace them.
+    <ul>
+      <li>The <code class="language-plaintext highlighter-rouge">Host</code> header is most likely <code class="language-plaintext highlighter-rouge">localhost</code></li>
+      <li>The <code class="language-plaintext highlighter-rouge">Origin</code> header must be forwarded</li>
+      <li>Information about the remote ip must be added as a <code class="language-plaintext highlighter-rouge">X-Forwarded-For</code>. However, Clef cannot always trust an <code class="language-plaintext highlighter-rouge">XFF</code> header, 
+since malicious clients may lie about <code class="language-plaintext highlighter-rouge">XFF</code> in order to fool the http server into believing it comes from another address.</li>
+    </ul>
+  </li>
+  <li>Even with a policy in place to allow RPC calls between <code class="language-plaintext highlighter-rouge">caller</code> and <code class="language-plaintext highlighter-rouge">target</code>, there will be several popups:
+    <ul>
+      <li>One qubes-specific where the user specifies the <code class="language-plaintext highlighter-rouge">target</code> vm</li>
+      <li>One clef-specific to approve the transaction</li>
+    </ul>
+  </li>
+</ul>
+
+<h4 id="2-network-integrated">2. Network integrated</h4>
+
+<p>The second way to set up Clef on a qubes system is to allow networking, and have Clef listen to a port which is accessible
+from other qubes.</p>
+
+<p><img src="./Advanced setup _ Go Ethereum_files/clef_qubes_http.png" alt="Clef via http"></p>
+
+<h2 id="usbarmory">USBArmory</h2>
+
+<p>The <a href="https://inversepath.com/usbarmory">USB armory</a> is an open source hardware design with an 800 MHz ARM processor. It is a pocket-size
+computer. When inserted into a laptop, it identifies itself as a USB network interface, basically adding another network
+to your computer. Over this new network interface, you can SSH into the device.</p>
+
+<p>Running Clef off a USB armory means that you can use the armory as a very versatile offline computer, which only
+ever connects to a local network between your computer and the device itself.</p>
+
+<p>Needless to say, while this model should be fairly secure against remote attacks, an attacker with physical access
+to the USB Armory would trivially be able to extract the contents of the device filesystem.</p>
+
+
+    </div>

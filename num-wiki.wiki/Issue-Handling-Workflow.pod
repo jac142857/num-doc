@@ -1,0 +1,76 @@
+ <div class="col-md-9" id="content">
+
+      <h3 id="draft-proposal">(Draft proposal)</h3>
+
+<p>Keep the number of open issues under 820</p>
+
+<p>Keep the ratio of open issues per all issues under 13%</p>
+
+<p>Have 50 issues labelled <a href="https://github.com/ethereum/go-ethereum/labels/help%20wanted">help wanted</a> and 50 <a href="https://github.com/ethereum/go-ethereum/labels/good%20first%20issue">good first issue</a>.</p>
+
+<p>Use structured labels of the form <code class="language-plaintext highlighter-rouge">&lt;category&gt;:&lt;label&gt;</code> or if need be <code class="language-plaintext highlighter-rouge">&lt;category&gt;:&lt;main&gt;/&lt;sub&gt;</code>, for example <code class="language-plaintext highlighter-rouge">area: plugins/foobuzzer</code>.</p>
+
+<p>Use the following labels. Areas and statuses depend on the application and workflow.</p>
+<ul>
+  <li>area
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">area: android</code></li>
+      <li><code class="language-plaintext highlighter-rouge">area: clef</code></li>
+      <li><code class="language-plaintext highlighter-rouge">area: network</code></li>
+      <li><code class="language-plaintext highlighter-rouge">area: swarm</code></li>
+      <li><code class="language-plaintext highlighter-rouge">area: whisper</code></li>
+    </ul>
+  </li>
+  <li>type
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">type: bug</code></li>
+      <li><code class="language-plaintext highlighter-rouge">type: feature</code></li>
+      <li><code class="language-plaintext highlighter-rouge">type: documentation</code></li>
+      <li><code class="language-plaintext highlighter-rouge">type: discussion</code></li>
+    </ul>
+  </li>
+  <li>status
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">status: PR review</code></li>
+      <li><code class="language-plaintext highlighter-rouge">status: community working on it</code></li>
+    </ul>
+  </li>
+  <li>need
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">need: more info</code></li>
+      <li><code class="language-plaintext highlighter-rouge">need: steps to reproduce</code></li>
+      <li><code class="language-plaintext highlighter-rouge">need: investigation</code></li>
+      <li><code class="language-plaintext highlighter-rouge">need: decision</code></li>
+    </ul>
+  </li>
+</ul>
+
+<p>Use these milestones</p>
+<ul>
+  <li><a href="https://github.com/ethereum/go-ethereum/milestone/80">Future</a> - Maybe implement one day</li>
+  <li><a href="https://github.com/ethereum/go-ethereum/milestone/81">Coming soon</a> - Not assigned to a specific release, but to be delivered in one of the upcoming releases</li>
+  <li>&lt;next version&gt; - Next release with a version number</li>
+  <li>&lt;next-next version&gt; - The version after the next release with a version number</li>
+  <li>&lt;next major release&gt; - Optional.</li>
+</ul>
+
+<p>It’s ok to not set a due date for a milestone, but once you release it, close it. If you have a few issues dangling, consider moving them to the next milestone, and close this one.</p>
+
+<p>Optionally, use a project board to collect issues of a larger effort that has an end state and overarches multiple releases.</p>
+
+<h2 id="workflow">Workflow</h2>
+<p>We have a weekly or bi-weekly triage meeting. Issues are preselected by <a href="https://github.com/ethereum/go-ethereum/issues?q=is%3Aopen+is%3Aissue+label%3Astatus%3Atriage+sort%3Acreated-asc">labelling them “status:triage” and sorted the oldest ones first</a>. This is when we go through the new issues and do one of the following</p>
+<ol>
+  <li>Close it.</li>
+  <li>Assign it to “Coming soon” milestone which doesn’t have an end date.</li>
+  <li>Move it to the “Future” milestone.</li>
+  <li>Change its status to “Need:&lt;what-is-needed&gt;”.</li>
+</ol>
+
+<p>Optional further activities:</p>
+<ul>
+  <li>Label the issue with the appropriate area/component.</li>
+  <li>Add a section to the FAQ or add a wiki page. Link to it from the issue.</li>
+</ul>
+
+    </div>

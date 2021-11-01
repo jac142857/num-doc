@@ -1,0 +1,193 @@
+  <div class="col-md-9" id="content">
+      
+      <p>To use Geth, you need to install it first. You can install Geth in a variety
+of ways that you can find in the “<a href="https://geth.ethereum.org/docs/install-and-build/installing-geth">Install and Build</a>” section.
+These include installing it via your favorite package manager, downloading a
+standalone pre-built binary, running it as a docker container or building it yourself.</p>
+
+<p>For this guide, we assume you have Geth installed and are ready to find out how to use it.
+The guide shows you how to create accounts, sync to a network, and then send transactions
+between accounts.</p>
+
+<p>This guide uses <a href="https://geth.ethereum.org/docs/clef/tutorial">Clef</a>, which is our preferred tool for signing transactions with Geth,
+and will replace Geth’s account management.</p>
+
+<h2 id="initialize-clef">Initialize Clef</h2>
+
+<p>First, initialize Clef with a random master seed, which is also encrypted with the password you define.
+The password must be at least 10 characters.</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>clef init
+</code></pre></div></div>
+
+<p><img src="https://geth.ethereum.org/static/images/clef-init.gif" alt="Clef init command"></p>
+
+<h2 id="create-accounts">Create accounts</h2>
+
+<p>Create two accounts with the <code class="language-plaintext highlighter-rouge">clef newaccount</code> command,
+set a password for each of them, and note the public address for each.</p>
+
+<p><img src="https://geth.ethereum.org/static/images/clef-account-new.gif" alt="Create new account command"></p>
+
+<p>Clef outputs a debug message about <code class="language-plaintext highlighter-rouge">Failed to reload keystore contents</code>, we fix that in a later step.</p>
+
+<h2 id="start-geth">Start Geth</h2>
+
+<h3 id="networks">Networks</h3>
+
+<p>You can connect a Geth node to several different networks using the network name as an argument.
+These include the main Ethereum network, <a href="https://geth.ethereum.org/docs/getting-started/private-net">a private network</a> you create,
+and three test networks that use different consensus algorithms:</p>
+
+<ul>
+  <li>&nbsp; <strong>Ropsten</strong>: Proof-of-work test network</li>
+  <li>&nbsp; <strong>Rinkeby</strong>: Proof-of-authority test network</li>
+  <li>&nbsp; <strong>Görli</strong>: Proof-of-authority test network</li>
+</ul>
+
+<p>For this guide, we use the Görli network. The default port is 30303, so you need to enable at least
+outgoing access from your node to that port.</p>
+
+<h3 id="sync-modes">Sync modes</h3>
+
+<p>You can start Geth in one of three different sync modes using the <code class="language-plaintext highlighter-rouge">--syncmode "&lt;mode&gt;"</code>
+argument that determines what sort of node it is in the network.</p>
+
+<p>These are:</p>
+
+<ul>
+  <li><strong>Full</strong>: Downloads all blocks (including headers, transactions, and receipts) and
+generates the state of the blockchain incrementally by executing every block.</li>
+  <li><strong>Fast</strong>: Downloads all blocks (including headers, transactions and
+receipts), verifies all headers, and downloads the state and verifies it against the
+headers.</li>
+  <li><strong>Snap</strong> (Default): Same functionality as fast, but with a faster algorithm.</li>
+  <li><strong>Light</strong>: Downloads all block headers, block data, and verifies some randomly.</li>
+</ul>
+
+<p>For this tutorial, we use a <code class="language-plaintext highlighter-rouge">light</code> sync:</p>
+
+<h2 id="start-clef">Start Clef</h2>
+
+<p>Start Clef, setting the keystore and chain id (goerli is 5) for the network we want to connect to:</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>clef <span class="nt">--keystore</span> &lt;GETH_DATA_DIR&gt;/keystore <span class="nt">--chainid</span> 5
+</code></pre></div></div>
+
+<p>To begin with, you see errors about a missing keystore, and we fix that soon.</p>
+
+<p>Under Linux the default Geth data directory is <code class="language-plaintext highlighter-rouge">~/.ethereum</code></p>
+
+<h2 id="start-geth-1">Start Geth</h2>
+
+<p>Open another command line window and run command below, which also enables the 
+<a href="https://geth.ethereum.org/docs/clef/tutorial">Geth RPC interface</a> (see below), and sets Clef as the transaction signer.</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>geth <span class="nt">--goerli</span> <span class="nt">--syncmode</span> <span class="s2">"light"</span> <span class="nt">--http</span> <span class="nt">--signer</span><span class="o">=</span>&lt;CLEF_LOCATION&gt;/clef.ipc
+</code></pre></div></div>
+
+<p>By default Clef’s location under Linux is <code class="language-plaintext highlighter-rouge">~/.clef</code>, but the signer’s location cannot
+include a <code class="language-plaintext highlighter-rouge">~</code> so replace it with your home directory.</p>
+
+<h2 id="get-eth">Get ETH</h2>
+
+<p>Unless you have Ether in another account on the Görli network, you can use a
+<a href="https://goerli-faucet.slock.it/">faucet</a> to send ETH to one of your new account addresses to use for this guide.</p>
+
+<h2 id="connect-to-geth-with-ipc-or-rpc">Connect to Geth with IPC or RPC</h2>
+
+<p>You can interact with Geth in two ways: Directly with the node using the JavaScript
+console over IPC, or connecting to the node remotely over HTTP using RPC.</p>
+
+<p>IPC allows you to do more, especially when it comes to creating and interacting
+with accounts, but you need direct access to the node.</p>
+
+<p>RPC allows remote applications to access your node but has limitations and security
+considerations, and by default only allows access to methods in the <code class="language-plaintext highlighter-rouge">eth</code> and <code class="language-plaintext highlighter-rouge">shh</code>
+namespaces. Find out how to override this setting <a href="https://geth.ethereum.org/docs/rpc/server#http-server">in the RPC docs</a>.</p>
+
+<h2 id="using-ipc">Using IPC</h2>
+
+<h3 id="connect-to-console">Connect to console</h3>
+
+<p>Connect to the IPC console on a node from another terminal window:</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>geth attach &lt;IPC_LOCATION&gt;
+</code></pre></div></div>
+
+<p>You can see the IPC location in the output of the network node <code class="language-plaintext highlighter-rouge">geth</code> process. By default, when using
+Görli, it is <code class="language-plaintext highlighter-rouge">~/.ethereum/goerli/geth.ipc</code>.</p>
+
+<h3 id="check-account-balance">Check account balance</h3>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">web3</span><span class="p">.</span><span class="nx">fromWei</span><span class="p">(</span><span class="nx">eth</span><span class="p">.</span><span class="nx">getBalance</span><span class="p">(</span><span class="dl">"</span><span class="s2">&lt;ADDRESS_1&gt;</span><span class="dl">"</span><span class="p">),</span><span class="dl">"</span><span class="s2">ether</span><span class="dl">"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>Getting the balance of an account does not require a signed transaction,
+so Clef does not ask for approval, and Geth returns the value.</p>
+
+<p>Note that this step requires the initial synchronization to end. If you get an error message, return to the 
+console with the network node Geth and wait until it is synchronized. You
+know that your Geth is synchronized when it is only importing a small number of blocks (one or two, usually)
+at a time.</p>
+
+<h3 id="send-eth-to-account">Send ETH to account</h3>
+
+<p>Send 0.01 ETH from the account that you added ETH to with the Görli faucet,
+to the second account you created:</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">eth</span><span class="p">.</span><span class="nx">sendTransaction</span><span class="p">({</span><span class="na">from</span><span class="p">:</span><span class="dl">"</span><span class="s2">&lt;ADDRESS_1&gt;</span><span class="dl">"</span><span class="p">,</span><span class="na">to</span><span class="p">:</span><span class="dl">"</span><span class="s2">&lt;ADDRESS_2&gt;</span><span class="dl">"</span><span class="p">,</span> <span class="na">value</span><span class="p">:</span> <span class="nx">web3</span><span class="p">.</span><span class="nx">toWei</span><span class="p">(</span><span class="mf">0.01</span><span class="p">,</span><span class="dl">"</span><span class="s2">ether</span><span class="dl">"</span><span class="p">)})</span>
+</code></pre></div></div>
+
+<p>This action does require signing the transaction, so go to the command line window with Clef running 
+to see that Clef prompts you to approve it, and when you do, asks you for the password for the account you are 
+sending the ETH from. If the password is correct, Geth proceeds with the transaction.</p>
+
+<p>To check, get the account balance of the second account:</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">web3</span><span class="p">.</span><span class="nx">fromWei</span><span class="p">(</span><span class="nx">eth</span><span class="p">.</span><span class="nx">getBalance</span><span class="p">(</span><span class="dl">"</span><span class="s2">&lt;ADDRESS_2&gt;</span><span class="dl">"</span><span class="p">),</span><span class="dl">"</span><span class="s2">ether</span><span class="dl">"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h2 id="using-rpc">Using RPC</h2>
+
+<h3 id="connect-to-rpc">Connect to RPC</h3>
+
+<p>You can use standard HTTP requests to connect to a Geth node using the RPC APIs, using
+this syntax:</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="nt">-X</span> POST http://&lt;GETH_IP_ADDRESS&gt;:8545 <span class="se">\</span>
+&nbsp; &nbsp; <span class="nt">-H</span> <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
+&nbsp; &nbsp;--data<span class="s1">'{"jsonrpc":"2.0", "method":"&lt;API_METHOD&gt;", "params":[], "id":1}'</span>
+</code></pre></div></div>
+
+<h3 id="check-account-balance-1">Check account balance</h3>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="nt">-X</span> POST http://&lt;GETH_IP_ADDRESS&gt;:8545 <span class="se">\</span>
+&nbsp; &nbsp; <span class="nt">-H</span> <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
+&nbsp; &nbsp;--data <span class="s1">'{"jsonrpc":"2.0", "method":"eth_getBalance", "params":["&lt;ADDRESS_1&gt;","latest"], "id":1}'</span>
+</code></pre></div></div>
+
+<p>Getting the balance of an account does not require a signed transaction, so Geth returns the value without invoking
+Clef. Note that the value returned is in hexadecimal and WEI. To get the ETH value, convert to decimal and divide by 10^18.</p>
+
+<h3 id="send-eth-to-accounts">Send ETH to accounts</h3>
+
+<p>Send 0.01 ETH from the account that you added ETH to with the Görli faucet, to the second account you created:</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="nt">-X</span> POST http://&lt;GETH_IP_ADDRESS&gt;:8545 <span class="se">\</span>
+&nbsp; &nbsp; <span class="nt">-H</span> <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
+&nbsp; &nbsp;--data <span class="s1">'{"jsonrpc":"2.0", "method":"eth_sendTransaction", "params":[{"from": "&lt;ADDRESS_1&gt;","to": "&lt;ADDRESS_2&gt;","value": "0x9184e72a"}], "id":1}'</span>
+</code></pre></div></div>
+
+<p>This action does require signing, so Clef prompts you to approve it, and if you do,
+asks you for the password of the account from which you are sending the ETH. If the password is correct,
+Geth proceeds with the transaction.</p>
+
+<p>To check, get the account balance of the second account:</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="nt">-X</span> POST http://&lt;GETH_IP_ADDRESS&gt;:8545 <span class="se">\</span>
+&nbsp; &nbsp; <span class="nt">-H</span> <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
+&nbsp; &nbsp; <span class="nt">--data</span> <span class="s1">'{"jsonrpc":"2.0", "method":"eth_getBalance", "params":["&lt;ADDRESS_2&gt;","latest"], "id":1}'</span>
+</code></pre></div></div>
+
+    </div>

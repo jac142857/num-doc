@@ -1,0 +1,116 @@
+    <div class="col-md-9" id="content">
+
+      <p>This document explains how to set up an <a href="https://eips.ethereum.org/EIPS/eip-1459">EIP 1459</a> node list using the devp2p
+developer tool. The focus of this guide is creating a public list for the Ethereum mainnet
+and public testnets, but you may also find this helpful if you want to set up DNS-based
+discovery for a private network.</p>
+
+<p>DNS-based node lists can serve as a fallback option when connectivity to the discovery DHT
+is unavailable. In this guide, we’ll create node lists by crawling the discovery DHT, then
+publishing the resulting node sets under chosen DNS names.</p>
+
+<h3 id="installing-the-devp2p-command">Installing the devp2p command</h3>
+
+<p>cmd/devp2p is a developer utility and is not included in the Geth distribution. You can
+install this command using <code class="language-plaintext highlighter-rouge">go get</code>:</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>go get github.com/ethereum/go-ethereum/cmd/devp2p
+</code></pre></div></div>
+
+<p>To create a signing key, you might also need the <code class="language-plaintext highlighter-rouge">ethkey</code> utility.</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>go get github.com/ethereum/go-ethereum/cmd/ethkey
+</code></pre></div></div>
+
+<h3 id="crawling-the-v4-dht">Crawling the v4 DHT</h3>
+
+<p>Our first step is to compile a list of all reachable nodes. The DHT crawler in cmd/devp2p
+is a batch process which runs for a set amount of time. You should should schedule this command
+to run at a regular interval. To create a node list, run</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>devp2p discv4 crawl <span class="nt">-timeout</span> 30m all-nodes.json
+</code></pre></div></div>
+
+<p>This walks the DHT and stores the set of all found nodes in the <code class="language-plaintext highlighter-rouge">all-nodes.json</code> file.
+Subsequent runs of the same command will revalidate previously discovered node records,
+add newly-found nodes to the set, and remove nodes which are no longer alive. The quality
+of the node set improves with each run because the number of revalidations is tracked
+alongside each node in the set.</p>
+
+<h3 id="creating-sub-lists-through-filtering">Creating sub-lists through filtering</h3>
+
+<p>Once <code class="language-plaintext highlighter-rouge">all-nodes.json</code> has been created and the set contains a sizeable number of nodes,
+useful sub-sets of nodes can be extracted using the <code class="language-plaintext highlighter-rouge">devp2p nodeset filter</code> command. This
+command takes a node set file as argument and applies filters given as command-line flags.</p>
+
+<p>To create a filtered node set, first create a new directory to hold the output set. You
+can use any directory name, though it’s good practice to use the DNS domain name as the
+name of this directory.</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">mkdir </span>mainnet.nodes.example.org
+</code></pre></div></div>
+
+<p>Then, to create the output set containing Ethereum mainnet nodes only, run</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>devp2p nodeset filter all-nodes.json <span class="nt">-eth-network</span> mainnet <span class="o">&gt;</span> mainnet.nodes.example.org/nodes.json
+</code></pre></div></div>
+
+<p>The following filter flags are available:</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">-eth-network ( mainnet | ropsten | rinkeby | goerli )</code> selects an Ethereum network.</li>
+  <li><code class="language-plaintext highlighter-rouge">-les-server</code> selects LES server nodes.</li>
+  <li><code class="language-plaintext highlighter-rouge">-ip &lt;mask&gt;</code> restricts nodes to the given IP range.</li>
+  <li><code class="language-plaintext highlighter-rouge">-min-age &lt;duration&gt;</code> restricts the result to nodes which have been live for the
+given duration.</li>
+</ul>
+
+<h3 id="creating-dns-trees">Creating DNS trees</h3>
+
+<p>To turn a node list into a DNS node tree, the list needs to be signed. To do this, you
+need a key pair. To create the key file in the correct format, you can use the cmd/ethkey
+utility. Please choose a good password to encrypt the key on disk.</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ethkey generate dnskey.json
+</code></pre></div></div>
+
+<p>Now use <code class="language-plaintext highlighter-rouge">devp2p dns sign</code> to update the signature of the node list. If your list’s
+directory name differs from the name you want to publish it at, please specify the DNS
+name the using the <code class="language-plaintext highlighter-rouge">-domain</code> flag. This command will prompt for the key file password and
+update the tree signature.</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>devp2p dns sign mainnet.nodes.example.org dnskey.json
+</code></pre></div></div>
+
+<p>The resulting DNS tree metadata is stored in the
+<code class="language-plaintext highlighter-rouge">mainnet.nodes.example.org/enrtree-info.json</code> file.</p>
+
+<h3 id="publishing-dns-trees">Publishing DNS trees</h3>
+
+<p>Now that the tree is signed, it can be published to a DNS provider. cmd/devp2p currently
+supports publishing to CloudFlare DNS and Amazon Route53. You can also export TXT records
+as a JSON file and publish them yourself.</p>
+
+<p>To publish to CloudFlare, first create an API token in the management console. cmd/devp2p
+expects the API token in the <code class="language-plaintext highlighter-rouge">CLOUDFLARE_API_TOKEN</code> environment variable. Now use the
+following command to upload DNS TXT records via the CloudFlare API:</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>devp2p dns to-cloudflare mainnet.nodes.example.org
+</code></pre></div></div>
+
+<p>Note that this command uses the domain name specified during signing. Any existing records
+below this name will be erased by cmd/devp2p.</p>
+
+<h3 id="using-dns-trees-with-geth">Using DNS trees with Geth</h3>
+
+<p>Once your tree is available through a DNS name, you can tell geth to use it with the
+<code class="language-plaintext highlighter-rouge">--discovery.dns</code> command line flag. Node trees are referenced using the <code class="language-plaintext highlighter-rouge">enrtree://</code> URL
+scheme. You can find the URL of your tree in the <code class="language-plaintext highlighter-rouge">enrtree-info.json</code> file created by
+<code class="language-plaintext highlighter-rouge">devp2p dns sign</code>. Just pass the URL as an argument to the flag in order to make use of
+the published tree.</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>geth <span class="nt">--discovery</span>.dns <span class="s2">"enrtree://AMBMWDM3J6UY3M32TMMROUNLX6Y3YTLVC3DC6HN2AVG5NHNSAXDW6@mainnet.nodes.example.org"</span>
+</code></pre></div></div>
+
+
+    </div>

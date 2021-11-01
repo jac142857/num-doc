@@ -1,0 +1,204 @@
+    <div class="col-md-9" id="content">
+
+      <p>The <code class="language-plaintext highlighter-rouge">miner</code> API allows you to remote control the node’s mining operation and set various
+mining specific settings.</p>
+
+<ul id="markdown-toc">
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-miner#miner_gethashrate" id="markdown-toc-miner_gethashrate">miner_getHashrate</a></li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-miner#miner_setextra" id="markdown-toc-miner_setextra">miner_setExtra</a></li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-miner#miner_setgasprice" id="markdown-toc-miner_setgasprice">miner_setGasPrice</a></li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-miner#miner_start" id="markdown-toc-miner_start">miner_start</a></li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-miner#miner_stop" id="markdown-toc-miner_stop">miner_stop</a></li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-miner#miner_setetherbase" id="markdown-toc-miner_setetherbase">miner_setEtherbase</a></li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-miner#miner_setgaslimit" id="markdown-toc-miner_setgaslimit">miner_setGasLimit</a></li>
+</ul>
+
+<h3 id="miner_gethashrate">miner_getHashrate</h3>
+
+<p>Get your hashrate in H/s (Hash operations per second).</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">miner.getHashrate()</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "miner_getHashrate", "params": []}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="miner_setextra">miner_setExtra</h3>
+
+<p>Sets the extra data a miner can include when miner blocks. This is capped at
+32 bytes.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Go</td>
+      <td><code class="language-plaintext highlighter-rouge">miner.setExtra(extra string) (bool, error)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">miner.setExtra(string)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "miner_setExtra", "params": [string]}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="miner_setgasprice">miner_setGasPrice</h3>
+
+<p>Sets the minimal accepted gas price when mining transactions. Any transactions that are
+below this limit are excluded from the mining process.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Go</td>
+      <td><code class="language-plaintext highlighter-rouge">miner.setGasPrice(number *rpc.HexNumber) bool</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">miner.setGasPrice(number)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "miner_setGasPrice", "params": [number]}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="miner_start">miner_start</h3>
+
+<p>Start the CPU mining process with the given number of threads and generate a new DAG
+if need be.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Go</td>
+      <td><code class="language-plaintext highlighter-rouge">miner.Start(threads *rpc.HexNumber) (bool, error)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">miner.start(number)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "miner_start", "params": [number]}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="miner_stop">miner_stop</h3>
+
+<p>Stop the CPU mining operation.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Go</td>
+      <td><code class="language-plaintext highlighter-rouge">miner.Stop() bool</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">miner.stop()</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "miner_stop", "params": []}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="miner_setetherbase">miner_setEtherbase</h3>
+
+<p>Sets the etherbase, where mining rewards will go.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Go</td>
+      <td><code class="language-plaintext highlighter-rouge">miner.SetEtherbase(common.Address) bool</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">miner.setEtherbase(address)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "miner_setEtherbase", "params": [address]}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="miner_setgaslimit">miner_setGasLimit</h3>
+
+<p>Sets the gas limit the miner will target when mining. Note: on networks where EIP-1559 is activated, this should be set to twice what you want the gas target (i.e. the effective gas used on average per block) to be.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Go</td>
+      <td><code class="language-plaintext highlighter-rouge">miner.SetGasLimit(number *rpc.HexNumber) bool</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">miner.SetGasLimit(number)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "miner_setGasLimit", "params": [number]}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+    </div>

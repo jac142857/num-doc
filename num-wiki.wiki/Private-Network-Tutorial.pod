@@ -1,0 +1,132 @@
+   <div class="col-md-9" id="content">
+      
+      
+      <p>This page describes how to set up a local cluster of nodes, advise how to make it private,
+and how to hook up your nodes on the eth-netstat network monitoring app. A fully
+controlled ethereum network is useful as a backend for network integration testing (core
+developers working on issues related to networking/blockchain synching/message
+propagation, etc or DAPP developers testing multi-block and multi-user scenarios).</p>
+
+<p>We assume you are able to build <code class="language-plaintext highlighter-rouge">geth</code> following the <a href="https://geth.ethereum.org/docs/install-and-build/installing-geth">build instructions</a>.</p>
+
+<h2 id="setting-up-multiple-nodes">Setting up multiple nodes</h2>
+
+<p>In order to run multiple ethereum nodes locally, you have to make sure:</p>
+
+<ul>
+  <li>each instance has a separate data directory (<code class="language-plaintext highlighter-rouge">--datadir</code>)</li>
+  <li>each instance runs on a different port (both eth and rpc) (<code class="language-plaintext highlighter-rouge">--port and --http.port</code>)</li>
+  <li>in case of a cluster the instances must know about each other</li>
+  <li>the ipc endpoint is unique or the ipc interface is disabled (<code class="language-plaintext highlighter-rouge">--ipcpath or --ipcdisable</code>)</li>
+</ul>
+
+<p>You start the first node (let’s make port explicit and disable ipc interface)</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>geth --datadir="/tmp/eth/60/01" -verbosity 6 --ipcdisable --port 30301 --http.port 8101 console 2&gt;&gt; /tmp/eth/60/01.log
+</code></pre></div></div>
+
+<p>We started the node with the console, so that we can grab the enode url for instance:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&gt; admin.nodeInfo.enode
+enode://8c544b4a07da02a9ee024def6f3ba24b2747272b64e16ec5dd6b17b55992f8980b77938155169d9d33807e501729ecb42f5c0a61018898c32799ced152e9f0d7@9[::]:30301
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">[::]</code> will be parsed as localhost (<code class="language-plaintext highlighter-rouge">127.0.0.1</code>). If your nodes are on a local network
+check each individual host machine and find your ip with <code class="language-plaintext highlighter-rouge">ifconfig</code> (on Linux and MacOS):</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ ifconfig|grep netmask|awk '{print $2}'
+127.0.0.1
+192.168.1.97
+</code></pre></div></div>
+
+<p>If your peers are not on the local network, you need to know your external IP address (use
+a service) to construct the enode url.</p>
+
+<p>Now you can launch a second node with:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>geth --datadir="/tmp/eth/60/02" --verbosity 6 --ipcdisable --port 30302 --http.port 8102 console 2&gt;&gt; /tmp/eth/60/02.log 
+</code></pre></div></div>
+
+<p>If you want to connect this instance to the previously started node you can add it as a
+peer from the console with <code class="language-plaintext highlighter-rouge">admin.addPeer(enodeUrlOfFirstInstance)</code>.</p>
+
+<p>You can test the connection by typing in geth console:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&gt; net.listening
+true
+&gt; net.peerCount 
+1
+&gt; admin.peers
+...
+</code></pre></div></div>
+
+<h2 id="local-cluster">Local cluster</h2>
+
+<p>As an extention of the above, you can spawn a local cluster of nodes easily. It can also
+be scripted including account creation which is needed for mining. See
+<a href="https://github.com/ethersphere/eth-utils"><code class="language-plaintext highlighter-rouge">gethcluster.sh</code></a> script, and the README there
+for usage and examples.</p>
+
+<h3 id="setup-bootnode">Setup bootnode</h3>
+
+<p>The first time a node connects to the network it uses one of the predefined
+<a href="https://github.com/ethereum/go-ethereum/blob/master/params/bootnodes.go">bootnodes</a>.
+Through these bootnodes a node can join the network and find other nodes. In the case of a
+private cluster these predefined bootnodes are not of much use. Therefore go-ethereum
+offers a bootnode implementation that can be configured and run in your private network.</p>
+
+<p>It can be run through the command.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&gt; bootnode
+Fatal: Use -nodekey or -nodekeyhex to specify a private key
+</code></pre></div></div>
+
+<p>As can be seen the bootnode asks for a key. Each ethereum node, including a bootnode is
+identified by an enode identifier. These identifiers are derived from a key. Therefore you
+will need to give the bootnode such key. Since we currently don’t have one we can instruct
+the bootnode to generate a key (and store it in a file) before it starts.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&gt; bootnode -genkey bootnode.key
+I0216 09:53:08.076155 p2p/discover/udp.go:227] Listening, enode://890b6b5367ef6072455fedbd7a24ebac239d442b18c5ab9d26f58a349dad35ee5783a0dd543e4f454fed22db9772efe28a3ed6f21e75674ef6203e47803da682@
+
+(exit with CTRL-C)
+</code></pre></div></div>
+
+<p>The stored key can be seen with:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&gt; cat bootnode.key
+dc90f8f7324f1cc7ba52c4077721c939f98a628ed17e51266d01c9cd0294033a
+</code></pre></div></div>
+
+<p>To instruct geth nodes to use our own bootnode(s) use the <code class="language-plaintext highlighter-rouge">--bootnodes</code> flag. This is a
+comma separated list of bootnode enode identifiers.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>geth --bootnodes "enode://890b6b5367ef6072455fedbd7a24ebac239d442b18c5ab9d26f58a349dad35ee5783a0dd543e4f454fed22db9772efe28a3ed6f21e75674ef6203e47803da682@[::]:30301"
+</code></pre></div></div>
+
+<p>(what <code class="language-plaintext highlighter-rouge">[::]</code> means is explained previously)</p>
+
+<p>Since it is convenient to start the bootnode each time with the same enode we can give the
+bootnode program the just generated key on the next time it is started.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>bootnode -nodekey bootnode.key
+I0216 10:01:19.125600 p2p/discover/udp.go:227] Listening, enode://890b6b5367ef6072455fedbd7a24ebac239d442b18c5ab9d26f58a349dad35ee5783a0dd543e4f454fed22db9772efe28a3ed6f21e75674ef6203e47803da682@[::]:30301
+</code></pre></div></div>
+
+<p>or</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>bootnode -nodekeyhex dc90f8f7324f1cc7ba52c4077721c939f98a628ed17e51266d01c9cd0294033a
+I0216 10:01:40.094089 p2p/discover/udp.go:227] Listening, enode://890b6b5367ef6072455fedbd7a24ebac239d442b18c5ab9d26f58a349dad35ee5783a0dd543e4f454fed22db9772efe28a3ed6f21e75674ef6203e47803da682@[::]:30301
+</code></pre></div></div>
+
+<h2 id="monitoring-your-nodes">Monitoring your nodes</h2>
+
+<p><a href="https://github.com/ethereum/wiki/wiki/Network-Status">This page</a> describes how to use the
+<a href="https://geth.ethereum.org/docs/getting-started/eth-stats">The Ethereum (centralised) network status monitor</a>. to monitor your nodes.</p>
+
+<p><a href="https://geth.ethereum.org/docs/getting-started/monitoring">This page</a> or <a href="https://github.com/ethersphere/eth-utils">this README</a>
+describes how you set up your own monitoring service for a (private or public) local
+cluster.</p>
+
+
+    </div>

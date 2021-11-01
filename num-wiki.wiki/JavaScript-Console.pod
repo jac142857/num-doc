@@ -1,0 +1,92 @@
+  <div class="col-md-9" id="content">
+      
+      
+      <p>The Geth JavaScript console exposes the full <a href="https://github.com/ethereum/wiki/wiki/JavaScript-API">web3 JavaScript Dapp
+API</a> and further administrative
+APIs.</p>
+
+<p>(note: the web3 version bundled within geth is very old, and not up to date with official docs)</p>
+
+<h2 id="interactive-use-the-console">Interactive Use: The Console</h2>
+
+<p>The geth JavaScript console is started with the <code class="language-plaintext highlighter-rouge">console</code> or <code class="language-plaintext highlighter-rouge">attach</code> geth sub-commands.
+The <code class="language-plaintext highlighter-rouge">console</code> subcommands starts the geth node and then opens the console. The <code class="language-plaintext highlighter-rouge">attach</code>
+subcommand attaches to the console to an already-running geth instance.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>geth console
+geth attach
+</code></pre></div></div>
+
+<p>Attach mode accepts an endpoint in case the geth node is running with a non default
+ipc endpoint or you would like to connect over the rpc interface.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>geth attach /some/custom/path.ipc
+geth attach http://191.168.1.1:8545
+geth attach ws://191.168.1.1:8546
+</code></pre></div></div>
+
+<p>Note that by default the geth node doesn’t start the HTTP and WebSocket servers and not
+all functionality is provided over these interfaces for security reasons. These defaults
+can be overridden with the <code class="language-plaintext highlighter-rouge">--http.api</code> and <code class="language-plaintext highlighter-rouge">--ws.api</code> arguments when the geth node is
+started, or with <a href="https://geth.ethereum.org/docs/rpc/ns-admin#admin_startrpc">admin.startRPC</a> and
+<a href="https://geth.ethereum.org/docs/rpc/ns-admin#admin_startws">admin.startWS</a>.</p>
+
+<p>If you need log information, start with:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>geth console --verbosity 5 2&gt;&gt; /tmp/eth.log
+</code></pre></div></div>
+
+<p>Otherwise mute your logs, so that it does not pollute your console:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>geth console 2&gt; /dev/null
+</code></pre></div></div>
+
+<p>Geth has support to load custom JavaScript files into the console through the <code class="language-plaintext highlighter-rouge">--preload</code>
+option. This can be used to load often used functions, or to setup web3 contract objects.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>geth console --preload "/my/scripts/folder/utils.js,/my/scripts/folder/contracts.js"
+</code></pre></div></div>
+
+<h2 id="non-interactive-use-script-mode">Non-interactive Use: Script Mode</h2>
+
+<p>It’s also possible to execute files to the JavaScript interpreter. The <code class="language-plaintext highlighter-rouge">console</code> and
+<code class="language-plaintext highlighter-rouge">attach</code> subcommand accept the <code class="language-plaintext highlighter-rouge">--exec</code> argument which is a javascript statement.</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>geth attach --exec "eth.blockNumber"
+</code></pre></div></div>
+
+<p>This prints the current block number of a running geth instance.</p>
+
+<p>Or execute a local script with more complex statements on a remote node over http:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>geth attach http://geth.example.org:8545 --exec 'loadScript("/tmp/checkbalances.js")'
+geth attach http://geth.example.org:8545 --jspath "/tmp" --exec 'loadScript("checkbalances.js")'
+</code></pre></div></div>
+
+<p>Use the <code class="language-plaintext highlighter-rouge">--jspath &lt;path/to/my/js/root&gt;</code> to set a library directory for your js scripts.
+Parameters to <code class="language-plaintext highlighter-rouge">loadScript()</code> with no absolute path will be understood relative to this
+directory.</p>
+
+<p>You can exit the console by typing <code class="language-plaintext highlighter-rouge">exit</code> or simply with <code class="language-plaintext highlighter-rouge">CTRL-C</code>.</p>
+
+<h2 id="caveats">Caveats</h2>
+
+<p>go-ethereum now uses the <a href="https://github.com/dop251/goja">GoJa JS VM</a> which is compatible with ECMAScript 5.1. There are some limitations though:</p>
+
+<ul>
+  <li>Promises and <code class="language-plaintext highlighter-rouge">async</code> won’t work.</li>
+</ul>
+
+<p><code class="language-plaintext highlighter-rouge">web3.js</code> uses the <a href="https://github.com/MikeMcl/bignumber.js"><code class="language-plaintext highlighter-rouge">bignumber.js</code></a> library.
+This library is auto-loaded into the console.</p>
+
+<h3 id="timers">Timers</h3>
+
+<p>In addition to the full functionality of JS (as per ECMA5), the ethereum JSRE is augmented
+with various timers. It implements <code class="language-plaintext highlighter-rouge">setInterval</code>, <code class="language-plaintext highlighter-rouge">clearInterval</code>, <code class="language-plaintext highlighter-rouge">setTimeout</code>,
+<code class="language-plaintext highlighter-rouge">clearTimeout</code> you may be used to using in browser windows. It also provides
+implementation for <code class="language-plaintext highlighter-rouge">admin.sleep(seconds)</code> and a block based timer, <code class="language-plaintext highlighter-rouge">admin.sleepBlocks(n)</code>
+which sleeps till the number of new blocks added is equal to or greater than <code class="language-plaintext highlighter-rouge">n</code>, think
+“wait for n confirmations”.</p>
+
+    </div>

@@ -1,0 +1,281 @@
+    <div class="col-md-9" id="content">
+
+      
+      <p>Geth provides several extensions to the standard “eth” JSON-RPC namespace.</p>
+
+<ul id="markdown-toc">
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-eth#eth_subscribe-eth_unsubscribe" id="markdown-toc-eth_subscribe-eth_unsubscribe">eth_subscribe, eth_unsubscribe</a></li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-eth#eth_call" id="markdown-toc-eth_call">eth_call</a>    <ul>
+      <li><a href="https://geth.ethereum.org/docs/rpc/ns-eth#parameters" id="markdown-toc-parameters">Parameters</a>        <ul>
+          <li><a href="https://geth.ethereum.org/docs/rpc/ns-eth#1-object---transaction-call-object" id="markdown-toc-1-object---transaction-call-object">1. <code class="language-plaintext highlighter-rouge">Object</code> - Transaction call object</a></li>
+          <li><a href="https://geth.ethereum.org/docs/rpc/ns-eth#2-quantity--tag---block-number-or-the-string-latest-or-pending" id="markdown-toc-2-quantity--tag---block-number-or-the-string-latest-or-pending">2. <code class="language-plaintext highlighter-rouge">Quantity | Tag</code> - Block number or the string <code class="language-plaintext highlighter-rouge">latest</code> or <code class="language-plaintext highlighter-rouge">pending</code></a></li>
+          <li><a href="https://geth.ethereum.org/docs/rpc/ns-eth#3-object---state-override-set" id="markdown-toc-3-object---state-override-set">3. <code class="language-plaintext highlighter-rouge">Object</code> - State override set</a></li>
+        </ul>
+      </li>
+      <li><a href="https://geth.ethereum.org/docs/rpc/ns-eth#return-values" id="markdown-toc-return-values">Return Values</a></li>
+      <li><a href="https://geth.ethereum.org/docs/rpc/ns-eth#simple-example" id="markdown-toc-simple-example">Simple example</a></li>
+      <li><a href="https://geth.ethereum.org/docs/rpc/ns-eth#override-example" id="markdown-toc-override-example">Override example</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="eth_subscribe-eth_unsubscribe">eth_subscribe, eth_unsubscribe</h3>
+
+<p>These methods are used for real-time events through subscriptions. See the <a href="https://geth.ethereum.org/docs/rpc/pubsub">subscription
+documentation</a> for more information.</p>
+
+<h3 id="eth_call">eth_call</h3>
+
+<p>Executes a new message call immediately, without creating a transaction on the block
+chain. The <code class="language-plaintext highlighter-rouge">eth_call</code> method can be used to query internal contract state, to execute
+validations coded into a contract or even to test what the effect of a transaction would
+be without running it live.</p>
+
+<h4 id="parameters">Parameters</h4>
+
+<p>The method takes 3 parameters: an unsigned transaction object to execute in read-only
+mode; the block number to execute the call against; and an optional state override-set to
+allow executing the call against a modified chain state.</p>
+
+<h5 id="1-object---transaction-call-object">1. <code class="language-plaintext highlighter-rouge">Object</code> - Transaction call object</h5>
+
+<p>The <em>transaction call object</em> is mandatory and contains all the necessary parameters to
+execute a read-only EVM contract method.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Field</th>
+      <th style="text-align: left">Type</th>
+      <th style="text-align: left">Bytes</th>
+      <th style="text-align: left">Optional</th>
+      <th style="text-align: left">Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">from</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">Address</code></td>
+      <td style="text-align: left">20</td>
+      <td style="text-align: left">Yes</td>
+      <td style="text-align: left">Address the transaction is simulated to have been sent from. Defaults to first account in the local keystore or the <code class="language-plaintext highlighter-rouge">0x00..0</code> address if no local accounts are available.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">to</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">Address</code></td>
+      <td style="text-align: left">20</td>
+      <td style="text-align: left">No</td>
+      <td style="text-align: left">Address the transaction is sent to.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">gas</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">Quantity</code></td>
+      <td style="text-align: left">&lt;8</td>
+      <td style="text-align: left">Yes</td>
+      <td style="text-align: left">Maximum gas allowance for the code execution to avoid infinite loops. Defaults to <code class="language-plaintext highlighter-rouge">2^63</code> or whatever value the node operator specified via <code class="language-plaintext highlighter-rouge">--rpc.gascap</code>.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">gasPrice</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">Quantity</code></td>
+      <td style="text-align: left">&lt;32</td>
+      <td style="text-align: left">Yes</td>
+      <td style="text-align: left">Number of <code class="language-plaintext highlighter-rouge">wei</code> to simulate paying for each unit of gas during execution. Defaults to <code class="language-plaintext highlighter-rouge">1 gwei</code>.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">value</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">Quantity</code></td>
+      <td style="text-align: left">&lt;32</td>
+      <td style="text-align: left">Yes</td>
+      <td style="text-align: left">Amount of <code class="language-plaintext highlighter-rouge">wei</code> to simulate sending along with the transaction. Defaults to <code class="language-plaintext highlighter-rouge">0</code>.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">data</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">Binary</code></td>
+      <td style="text-align: left">any</td>
+      <td style="text-align: left">Yes</td>
+      <td style="text-align: left">Binary data to send to the target contract. Generally the 4 byte hash of the method signature followed by the ABI encoded parameters. For details please see the <a href="https://github.com/ethereum/wiki/wiki/Ethereum-Contract-ABI">Ethereum Contract ABI</a>.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Example:</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"from"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0xd9c9cd5f6779558b6e0ed4e6acf6b1947e7fa1f3"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"to"</span><span class="p">:</span><span class="w">   </span><span class="s2">"0xebe8efa441b9302a0d7eaecc277c09d20d684540"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"gas"</span><span class="p">:</span><span class="w">  </span><span class="s2">"0x1bd7c"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"data"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0xd459fc46000000000000000000000000000000000000000000000000000000000046c650dbb5e8cb2bac4d2ed0b1e6475d37361157738801c494ca482f96527eb48f9eec488c2eba92d31baeccfb6968fad5c21a3df93181b43b4cf253b4d572b64172ef000000000000000000000000000000000000000000000000000000000000008c00000000000000000000000000000000000000000000000000000000000000e0000000000000000000000000000000000000000000000000000000000000014000000000000000000000000000000000000000000000000000000000000001a00000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000001c000000000000000000000000000000000000000000000000000000000000001c0000000000000000000000000000000000000000000000000000000000000002b85c0c828d7a98633b4e1b65eac0c017502da909420aeade9a280675013df36bdc71cffdf420cef3d24ba4b3f9b980bfbb26bd5e2dcf7795b3519a3fd22ffbb2000000000000000000000000000000000000000000000000000000000000000238fb6606dc2b5e42d00c653372c153da8560de77bd9afaba94b4ab6e4aa11d565d858c761320dbf23a94018d843772349bd9d92301b0ca9ca983a22d86a70628"</span><span class="p">,</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<h5 id="2-quantity--tag---block-number-or-the-string-latest-or-pending">2. <code class="language-plaintext highlighter-rouge">Quantity | Tag</code> - Block number or the string <code class="language-plaintext highlighter-rouge">latest</code> or <code class="language-plaintext highlighter-rouge">pending</code></h5>
+
+<p>The <em>block number</em> is mandatory and defines the context (state) against which the
+specified transaction should be executed. It is not possible to execute calls against
+reorged blocks; or blocks older than 128 (unless the node is an archive node).</p>
+
+<h5 id="3-object---state-override-set">3. <code class="language-plaintext highlighter-rouge">Object</code> - State override set</h5>
+
+<p>The <em>state override set</em> is an optional address-to-state mapping, where each entry
+specifies some state to be ephemerally overridden prior to executing the call. Each
+address maps to an object containing:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Field</th>
+      <th style="text-align: left">Type</th>
+      <th style="text-align: left">Bytes</th>
+      <th style="text-align: left">Optional</th>
+      <th style="text-align: left">Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">balance</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">Quantity</code></td>
+      <td style="text-align: left">&lt;32</td>
+      <td style="text-align: left">Yes</td>
+      <td style="text-align: left">Fake balance to set for the account before executing the call.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">nonce</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">Quantity</code></td>
+      <td style="text-align: left">&lt;8</td>
+      <td style="text-align: left">Yes</td>
+      <td style="text-align: left">Fake nonce to set for the account before executing the call.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">code</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">Binary</code></td>
+      <td style="text-align: left">any</td>
+      <td style="text-align: left">Yes</td>
+      <td style="text-align: left">Fake EVM bytecode to inject into the account before executing the call.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">state</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">Object</code></td>
+      <td style="text-align: left">any</td>
+      <td style="text-align: left">Yes</td>
+      <td style="text-align: left">Fake key-value mapping to override <strong>all</strong> slots in the account storage before executing the call.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">stateDiff</code></td>
+      <td style="text-align: left"><code class="language-plaintext highlighter-rouge">Object</code></td>
+      <td style="text-align: left">any</td>
+      <td style="text-align: left">Yes</td>
+      <td style="text-align: left">Fake key-value mapping to override <strong>individual</strong> slots in the account storage before executing the call.</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>The goal of the <em>state override set</em> is manyfold:</p>
+
+<ul>
+  <li>It can be used by DApps to reduce the amount of contract code needed to be deployed on
+chain. Code that simply returns internal state or does pre-defined validations can be
+kept off chain and fed to the node on-demand.</li>
+  <li>It can be used for smart contract analysis by extending the code deployed on chain with
+custom methods and invoking them. This avoids having to download and reconstruct the
+entire state in a sandbox to run custom code against.</li>
+  <li>It can be used to debug smart contracts in an already deployed large suite of contracts
+by selectively overriding some code or state and seeing how execution changes.
+Specialized tooling will probably be necessary.</li>
+</ul>
+
+<p>Example:</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"0xd9c9cd5f6779558b6e0ed4e6acf6b1947e7fa1f3"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"balance"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0xde0b6b3a7640000"</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="nl">"0xebe8efa441b9302a0d7eaecc277c09d20d684540"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x..."</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"state"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="s2">""</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<h4 id="return-values">Return Values</h4>
+
+<p>The method returns a single <code class="language-plaintext highlighter-rouge">Binary</code> consisting the return value of the executed contract
+call.</p>
+
+<h4 id="simple-example">Simple example</h4>
+
+<p>With a synced Rinkeby node with RPC exposed on localhost (<code class="language-plaintext highlighter-rouge">geth --rinkeby --http</code>) we can
+make a call against the <a href="https://rinkeby.etherscan.io/address/0xebe8efa441b9302a0d7eaecc277c09d20d684540">Checkpoint
+Oracle</a>
+to retrieve the list of administrators:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ curl --data '{"method":"eth_call","params":[{"to":"0xebe8efa441b9302a0d7eaecc277c09d20d684540","data":"0x45848dfc"},"latest"],"id":1,"jsonrpc":"2.0"}' -H "Content-Type: application/json" -X POST localhost:8545
+</code></pre></div></div>
+
+<p>And the result is an Ethereum ABI encoded list of accounts:</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"id"</span><span class="p">:</span><span class="w">      </span><span class="mi">1</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"jsonrpc"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2.0"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"result"</span><span class="p">:</span><span class="w">  </span><span class="s2">"0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000004000000000000000000000000d9c9cd5f6779558b6e0ed4e6acf6b1947e7fa1f300000000000000000000000078d1ad571a1a09d60d9bbf25894b44e4c8859595000000000000000000000000286834935f4a8cfb4ff4c77d5770c2775ae2b0e7000000000000000000000000b86e2b0ab5a4b1373e40c51a7c712c70ba2f9f8e"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p>Just for the sake of completeness, decoded the response is:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>0xd9c9cd5f6779558b6e0ed4e6acf6b1947e7fa1f3,
+0x78d1ad571a1a09d60d9bbf25894b44e4c8859595,
+0x286834935f4a8cfb4ff4c77d5770c2775ae2b0e7,
+0xb86e2b0ab5a4b1373e40c51a7c712c70ba2f9f8e
+</code></pre></div></div>
+
+<h4 id="override-example">Override example</h4>
+
+<p>The above <em>simple example</em> showed how to call a method already exposed by an on-chain
+smart contract. What if we want to access some data not exposed by it?</p>
+
+<p>We can gut out the
+<a href="https://github.com/ethereum/go-ethereum/blob/master/contracts/checkpointoracle/contract/oracle.sol">original</a>
+checkpoint oracle contract with one that retains the same fields (to retain the same
+storage layout), but one that includes a different method set:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>pragma solidity ^0.5.10;
+
+contract CheckpointOracle {
+    mapping(address =&gt; bool) admins;
+    address[] adminList;
+    uint64 sectionIndex;
+    uint height;
+    bytes32 hash;
+    uint sectionSize;
+    uint processConfirms;
+    uint threshold;
+
+    function VotingThreshold() public view returns (uint) {
+        return threshold;
+    }
+}
+</code></pre></div></div>
+
+<p>With a synced Rinkeby node with RPC exposed on localhost (<code class="language-plaintext highlighter-rouge">geth --rinkeby --http</code>) we can
+make a call against the live <a href="https://rinkeby.etherscan.io/address/0xebe8efa441b9302a0d7eaecc277c09d20d684540">Checkpoint
+Oracle</a>,
+but override its byte code with our own version that has an accessor for the voting
+threshold field:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ curl --data '{"method":"eth_call","params":[{"to":"0xebe8efa441b9302a0d7eaecc277c09d20d684540","data":"0x0be5b6ba"}, "latest", {"0xebe8efa441b9302a0d7eaecc277c09d20d684540": {"code":"0x6080604052348015600f57600080fd5b506004361060285760003560e01c80630be5b6ba14602d575b600080fd5b60336045565b60408051918252519081900360200190f35b6007549056fea265627a7a723058206f26bd0433456354d8d1228d8fe524678a8aeeb0594851395bdbd35efc2a65f164736f6c634300050a0032"}}],"id":1,"jsonrpc":"2.0"}' -H "Content-Type: application/json" -X POST localhost:8545
+</code></pre></div></div>
+
+<p>And the result is the Ethereum ABI encoded threshold number:</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"id"</span><span class="p">:</span><span class="w">      </span><span class="mi">1</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"jsonrpc"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2.0"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"result"</span><span class="p">:</span><span class="w">  </span><span class="s2">"0x0000000000000000000000000000000000000000000000000000000000000002"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p>Just for the sake of completeness, decoded the response is: <code class="language-plaintext highlighter-rouge">2</code>.</p>
+
+    </div>

@@ -1,0 +1,265 @@
+  <div class="col-md-9" id="content">
+
+      <p>The <code class="language-plaintext highlighter-rouge">signer</code> binary contains a ruleset engine, implemented with <a href="https://github.com/robertkrimen/otto">OttoVM</a></p>
+
+<p>It enables usecases like the following:</p>
+
+<ul>
+  <li>I want to auto-approve transactions with contract <code class="language-plaintext highlighter-rouge">CasinoDapp</code>, with up to <code class="language-plaintext highlighter-rouge">0.05 ether</code> in value to maximum <code class="language-plaintext highlighter-rouge">1 ether</code> per 24h period</li>
+  <li>I want to auto-approve transaction to contract <code class="language-plaintext highlighter-rouge">EthAlarmClock</code> with <code class="language-plaintext highlighter-rouge">data</code>=<code class="language-plaintext highlighter-rouge">0xdeadbeef</code>, if <code class="language-plaintext highlighter-rouge">value=0</code>, <code class="language-plaintext highlighter-rouge">gas &lt; 44k</code> and <code class="language-plaintext highlighter-rouge">gasPrice &lt; 40Gwei</code></li>
+</ul>
+
+<p>The two main features that are required for this to work well are;</p>
+
+<ol>
+  <li>Rule Implementation: how to create, manage and interpret rules in a flexible but secure manner</li>
+  <li>Credential managements and credentials; how to provide auto-unlock without exposing keys unnecessarily.</li>
+</ol>
+
+<p>The section below deals with both of them</p>
+
+<h2 id="rule-implementation">Rule Implementation</h2>
+
+<p>A ruleset file is implemented as a <code class="language-plaintext highlighter-rouge">js</code> file. Under the hood, the ruleset-engine is a <code class="language-plaintext highlighter-rouge">SignerUI</code>, implementing the same methods as the <code class="language-plaintext highlighter-rouge">json-rpc</code> methods
+defined in the UI protocol. Example:</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">function</span> <span class="nx">asBig</span><span class="p">(</span><span class="nx">str</span><span class="p">)</span> <span class="p">{</span>
+	<span class="k">if</span> <span class="p">(</span><span class="nx">str</span><span class="p">.</span><span class="nx">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="o">==</span> <span class="dl">"</span><span class="s2">0x</span><span class="dl">"</span><span class="p">)</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="k">new</span> <span class="nx">BigNumber</span><span class="p">(</span><span class="nx">str</span><span class="p">.</span><span class="nx">slice</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="mi">16</span><span class="p">)</span>
+	<span class="p">}</span>
+	<span class="k">return</span> <span class="k">new</span> <span class="nx">BigNumber</span><span class="p">(</span><span class="nx">str</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1">// Approve transactions to a certain contract if value is below a certain limit</span>
+<span class="kd">function</span> <span class="nx">ApproveTx</span><span class="p">(</span><span class="nx">req</span><span class="p">)</span> <span class="p">{</span>
+	<span class="kd">var</span> <span class="nx">limit</span> <span class="o">=</span> <span class="nx">big</span><span class="p">.</span><span class="nx">Newint</span><span class="p">(</span><span class="dl">"</span><span class="s2">0xb1a2bc2ec50000</span><span class="dl">"</span><span class="p">)</span>
+	<span class="kd">var</span> <span class="nx">value</span> <span class="o">=</span> <span class="nx">asBig</span><span class="p">(</span><span class="nx">req</span><span class="p">.</span><span class="nx">transaction</span><span class="p">.</span><span class="nx">value</span><span class="p">);</span>
+
+	<span class="k">if</span> <span class="p">(</span><span class="nx">req</span><span class="p">.</span><span class="nx">transaction</span><span class="p">.</span><span class="nx">to</span><span class="p">.</span><span class="nx">toLowerCase</span><span class="p">()</span> <span class="o">==</span> <span class="dl">"</span><span class="s2">0xae967917c465db8578ca9024c205720b1a3651a9</span><span class="dl">"</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nx">value</span><span class="p">.</span><span class="nx">lt</span><span class="p">(</span><span class="nx">limit</span><span class="p">))</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="dl">"</span><span class="s2">Approve</span><span class="dl">"</span>
+	<span class="p">}</span>
+	<span class="c1">// If we return "Reject", it will be rejected.</span>
+	<span class="c1">// By not returning anything, it will be passed to the next UI, for manual processing</span>
+<span class="p">}</span>
+
+<span class="c1">// Approve listings if request made from IPC</span>
+<span class="kd">function</span> <span class="nx">ApproveListing</span><span class="p">(</span><span class="nx">req</span><span class="p">){</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">req</span><span class="p">.</span><span class="nx">metadata</span><span class="p">.</span><span class="nx">scheme</span> <span class="o">==</span> <span class="dl">"</span><span class="s2">ipc</span><span class="dl">"</span><span class="p">){</span> <span class="k">return</span> <span class="dl">"</span><span class="s2">Approve</span><span class="dl">"</span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Whenever the external API is called (and the ruleset is enabled), the <code class="language-plaintext highlighter-rouge">signer</code> calls the UI, which is an instance of a ruleset-engine. The ruleset-engine
+invokes the corresponding method. In doing so, there are three possible outcomes:</p>
+
+<ol>
+  <li>JS returns “Approve”
+    <ul>
+      <li>Auto-approve request</li>
+    </ul>
+  </li>
+  <li>JS returns “Reject”
+    <ul>
+      <li>Auto-reject request</li>
+    </ul>
+  </li>
+  <li>Error occurs, or something else is returned
+    <ul>
+      <li>Pass on to <code class="language-plaintext highlighter-rouge">next</code> ui: the regular UI channel.</li>
+    </ul>
+  </li>
+</ol>
+
+<p>A more advanced example can be found below, “Example 1: ruleset for a rate-limited window”, using <code class="language-plaintext highlighter-rouge">storage</code> to <code class="language-plaintext highlighter-rouge">Put</code> and <code class="language-plaintext highlighter-rouge">Get</code> <code class="language-plaintext highlighter-rouge">string</code>s by key.</p>
+
+<ul>
+  <li>At the time of writing, storage only exists as an ephemeral unencrypted implementation, to be used during testing.</li>
+</ul>
+
+<h3 id="things-to-note">Things to note</h3>
+
+<p>The Otto vm has a few <a href="https://github.com/robertkrimen/otto">caveats</a>:</p>
+
+<ul>
+  <li>“use strict” will parse, but does nothing.</li>
+  <li>The regular expression engine (re2/regexp) is not fully compatible with the ECMA5 specification.</li>
+  <li>Otto targets ES5. ES6 features (eg: Typed Arrays) are not supported.</li>
+</ul>
+
+<p>Additionally, a few more have been added</p>
+
+<ul>
+  <li>The rule execution cannot load external javascript files.</li>
+  <li>The only preloaded library is <a href="https://github.com/MikeMcl/bignumber.js"><code class="language-plaintext highlighter-rouge">bignumber.js</code></a> version <code class="language-plaintext highlighter-rouge">2.0.3</code>. This one is fairly old, and is not aligned with the documentation at the github repository.</li>
+  <li>Each invocation is made in a fresh virtual machine. This means that you cannot store data in global variables between invocations. This is a deliberate choice – if you want to store data, use the disk-backed <code class="language-plaintext highlighter-rouge">storage</code>, since rules should not rely on ephemeral data.</li>
+  <li>Javascript API parameters are <em>always</em> an object. This is also a design choice, to ensure that parameters are accessed by <em>key</em> and not by order. This is to prevent mistakes due to missing parameters or parameter changes.</li>
+  <li>The JS engine has access to <code class="language-plaintext highlighter-rouge">storage</code> and <code class="language-plaintext highlighter-rouge">console</code>.</li>
+</ul>
+
+<h4 id="security-considerations">Security considerations</h4>
+
+<h5 id="security-of-ruleset">Security of ruleset</h5>
+
+<p>Some security precautions can be made, such as:</p>
+
+<ul>
+  <li>Never load <code class="language-plaintext highlighter-rouge">ruleset.js</code> unless the file is <code class="language-plaintext highlighter-rouge">readonly</code> (<code class="language-plaintext highlighter-rouge">r-??-??-?</code>). If the user wishes to modify the ruleset, he must make it writeable and then set back to readonly.
+    <ul>
+      <li>This is to prevent attacks where files are dropped on the users disk.</li>
+    </ul>
+  </li>
+  <li>Since we’re going to have to have some form of secure storage (not defined in this section), we could also store the <code class="language-plaintext highlighter-rouge">sha3</code> of the <code class="language-plaintext highlighter-rouge">ruleset.js</code> file in there.
+    <ul>
+      <li>If the user wishes to modify the ruleset, he’d then have to perform e.g. <code class="language-plaintext highlighter-rouge">signer --attest /path/to/ruleset --credential &lt;creds&gt;</code></li>
+    </ul>
+  </li>
+</ul>
+
+<h5 id="security-of-implementation">Security of implementation</h5>
+
+<p>The drawbacks of this very flexible solution is that the <code class="language-plaintext highlighter-rouge">signer</code> needs to contain a javascript engine. This is pretty simple to implement, since it’s already
+implemented for <code class="language-plaintext highlighter-rouge">geth</code>. There are no known security vulnerabilities in, nor have we had any security-problems with it so far.</p>
+
+<p>The javascript engine would be an added attack surface; but if the validation of <code class="language-plaintext highlighter-rouge">rulesets</code> is made good (with hash-based attestation), the actual javascript cannot be considered
+an attack surface – if an attacker can control the ruleset, a much simpler attack would be to implement an “always-approve” rule instead of exploiting the js vm. The only benefit
+to be gained from attacking the actual <code class="language-plaintext highlighter-rouge">signer</code> process from the <code class="language-plaintext highlighter-rouge">js</code> side would be if it could somehow extract cryptographic keys from memory.</p>
+
+<h5 id="security-in-usability">Security in usability</h5>
+
+<p>Javascript is flexible, but also easy to get wrong, especially when users assume that <code class="language-plaintext highlighter-rouge">js</code> can handle large integers natively. Typical errors
+include trying to multiply <code class="language-plaintext highlighter-rouge">gasCost</code> with <code class="language-plaintext highlighter-rouge">gas</code> without using <code class="language-plaintext highlighter-rouge">bigint</code>:s.</p>
+
+<p>It’s unclear whether any other DSL could be more secure; since there’s always the possibility of erroneously implementing a rule.</p>
+
+<h2 id="credential-management">Credential management</h2>
+
+<p>The ability to auto-approve transaction means that the signer needs to have necessary credentials to decrypt keyfiles. These passwords are hereafter called <code class="language-plaintext highlighter-rouge">ksp</code> (keystore pass).</p>
+
+<h3 id="example-implementation">Example implementation</h3>
+
+<p>Upon startup of the signer, the signer is given a switch: <code class="language-plaintext highlighter-rouge">--seed &lt;path/to/masterseed&gt;</code>
+The <code class="language-plaintext highlighter-rouge">seed</code> contains a blob of bytes, which is the master seed for the <code class="language-plaintext highlighter-rouge">signer</code>.</p>
+
+<p>The <code class="language-plaintext highlighter-rouge">signer</code> uses the <code class="language-plaintext highlighter-rouge">seed</code> to:</p>
+
+<ul>
+  <li>Generate the <code class="language-plaintext highlighter-rouge">path</code> where the settings are stored.
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">./settings/1df094eb-c2b1-4689-90dd-790046d38025/vault.dat</code></li>
+      <li><code class="language-plaintext highlighter-rouge">./settings/1df094eb-c2b1-4689-90dd-790046d38025/rules.js</code></li>
+    </ul>
+  </li>
+  <li>Generate the encryption password for <code class="language-plaintext highlighter-rouge">vault.dat</code>.</li>
+</ul>
+
+<p>The <code class="language-plaintext highlighter-rouge">vault.dat</code> would be an encrypted container storing the following information:</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">ksp</code> entries</li>
+  <li><code class="language-plaintext highlighter-rouge">sha256</code> hash of <code class="language-plaintext highlighter-rouge">rules.js</code></li>
+  <li>Information about pair:ed callers (not yet specified)</li>
+</ul>
+
+<h3 id="security-considerations-1">Security considerations</h3>
+
+<p>This would leave it up to the user to ensure that the <code class="language-plaintext highlighter-rouge">path/to/masterseed</code> is handled in a secure way. It’s difficult to get around this, although one could
+imagine leveraging OS-level keychains where supported. The setup is however in general similar to how ssh-keys are  stored in <code class="language-plaintext highlighter-rouge">.ssh/</code>.</p>
+
+<h1 id="implementation-status">Implementation status</h1>
+
+<p>This is now implemented (with ephemeral non-encrypted storage for now, so not yet enabled).</p>
+
+<h2 id="example-1-ruleset-for-a-rate-limited-window">Example 1: ruleset for a rate-limited window</h2>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">function</span> <span class="nx">big</span><span class="p">(</span><span class="nx">str</span><span class="p">)</span> <span class="p">{</span>
+	<span class="k">if</span> <span class="p">(</span><span class="nx">str</span><span class="p">.</span><span class="nx">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="o">==</span> <span class="dl">"</span><span class="s2">0x</span><span class="dl">"</span><span class="p">)</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="k">new</span> <span class="nx">BigNumber</span><span class="p">(</span><span class="nx">str</span><span class="p">.</span><span class="nx">slice</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="mi">16</span><span class="p">)</span>
+	<span class="p">}</span>
+	<span class="k">return</span> <span class="k">new</span> <span class="nx">BigNumber</span><span class="p">(</span><span class="nx">str</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1">// Time window: 1 week</span>
+<span class="kd">var</span> <span class="nb">window</span> <span class="o">=</span> <span class="mi">1000</span><span class="o">*</span> <span class="mi">3600</span><span class="o">*</span><span class="mi">24</span><span class="o">*</span><span class="mi">7</span><span class="p">;</span>
+
+<span class="c1">// Limit : 1 ether</span>
+<span class="kd">var</span> <span class="nx">limit</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">BigNumber</span><span class="p">(</span><span class="dl">"</span><span class="s2">1e18</span><span class="dl">"</span><span class="p">);</span>
+
+<span class="kd">function</span> <span class="nx">isLimitOk</span><span class="p">(</span><span class="nx">transaction</span><span class="p">)</span> <span class="p">{</span>
+	<span class="kd">var</span> <span class="nx">value</span> <span class="o">=</span> <span class="nx">big</span><span class="p">(</span><span class="nx">transaction</span><span class="p">.</span><span class="nx">value</span><span class="p">)</span>
+	<span class="c1">// Start of our window function</span>
+	<span class="kd">var</span> <span class="nx">windowstart</span> <span class="o">=</span> <span class="k">new</span> <span class="nb">Date</span><span class="p">().</span><span class="nx">getTime</span><span class="p">()</span> <span class="o">-</span> <span class="nb">window</span><span class="p">;</span>
+
+	<span class="kd">var</span> <span class="nx">txs</span> <span class="o">=</span> <span class="p">[];</span>
+	<span class="kd">var</span> <span class="nx">stored</span> <span class="o">=</span> <span class="nx">storage</span><span class="p">.</span><span class="kd">get</span><span class="p">(</span><span class="dl">'</span><span class="s1">txs</span><span class="dl">'</span><span class="p">);</span>
+
+	<span class="k">if</span> <span class="p">(</span><span class="nx">stored</span> <span class="o">!=</span> <span class="dl">""</span><span class="p">)</span> <span class="p">{</span>
+		<span class="nx">txs</span> <span class="o">=</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">stored</span><span class="p">)</span>
+	<span class="p">}</span>
+	<span class="c1">// First, remove all that have passed out of the time-window</span>
+	<span class="kd">var</span> <span class="nx">newtxs</span> <span class="o">=</span> <span class="nx">txs</span><span class="p">.</span><span class="nx">filter</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">tx</span><span class="p">){</span><span class="k">return</span> <span class="nx">tx</span><span class="p">.</span><span class="nx">tstamp</span> <span class="o">&gt;</span> <span class="nx">windowstart</span><span class="p">});</span>
+	<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">txs</span><span class="p">,</span> <span class="nx">newtxs</span><span class="p">.</span><span class="nx">length</span><span class="p">);</span>
+
+	<span class="c1">// Secondly, aggregate the current sum</span>
+	<span class="nx">sum</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">BigNumber</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+	<span class="nx">sum</span> <span class="o">=</span> <span class="nx">newtxs</span><span class="p">.</span><span class="nx">reduce</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">agg</span><span class="p">,</span> <span class="nx">tx</span><span class="p">){</span> <span class="k">return</span> <span class="nx">big</span><span class="p">(</span><span class="nx">tx</span><span class="p">.</span><span class="nx">value</span><span class="p">).</span><span class="nx">plus</span><span class="p">(</span><span class="nx">agg</span><span class="p">)},</span> <span class="nx">sum</span><span class="p">);</span>
+	<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="dl">"</span><span class="s2">ApproveTx &gt; Sum so far</span><span class="dl">"</span><span class="p">,</span> <span class="nx">sum</span><span class="p">);</span>
+	<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="dl">"</span><span class="s2">ApproveTx &gt; Requested</span><span class="dl">"</span><span class="p">,</span> <span class="nx">value</span><span class="p">.</span><span class="nx">toNumber</span><span class="p">());</span>
+
+	<span class="c1">// Would we exceed weekly limit ?</span>
+	<span class="k">return</span> <span class="nx">sum</span><span class="p">.</span><span class="nx">plus</span><span class="p">(</span><span class="nx">value</span><span class="p">).</span><span class="nx">lt</span><span class="p">(</span><span class="nx">limit</span><span class="p">)</span>
+
+<span class="p">}</span>
+<span class="kd">function</span> <span class="nx">ApproveTx</span><span class="p">(</span><span class="nx">r</span><span class="p">)</span> <span class="p">{</span>
+	<span class="k">if</span> <span class="p">(</span><span class="nx">isLimitOk</span><span class="p">(</span><span class="nx">r</span><span class="p">.</span><span class="nx">transaction</span><span class="p">))</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="dl">"</span><span class="s2">Approve</span><span class="dl">"</span>
+	<span class="p">}</span>
+	<span class="k">return</span> <span class="dl">"</span><span class="s2">Nope</span><span class="dl">"</span>
+<span class="p">}</span>
+
+<span class="cm">/**
+* OnApprovedTx(str) is called when a transaction has been approved and signed. The parameter
+	* 'response_str' contains the return value that will be sent to the external caller.
+* The return value from this method is ignore - the reason for having this callback is to allow the
+* ruleset to keep track of approved transactions.
+*
+* When implementing rate-limited rules, this callback should be used.
+* If a rule responds with neither 'Approve' nor 'Reject' - the tx goes to manual processing. If the user
+* then accepts the transaction, this method will be called.
+*
+* TLDR; Use this method to keep track of signed transactions, instead of using the data in ApproveTx.
+*/</span>
+<span class="kd">function</span> <span class="nx">OnApprovedTx</span><span class="p">(</span><span class="nx">resp</span><span class="p">)</span> <span class="p">{</span>
+	<span class="kd">var</span> <span class="nx">value</span> <span class="o">=</span> <span class="nx">big</span><span class="p">(</span><span class="nx">resp</span><span class="p">.</span><span class="nx">tx</span><span class="p">.</span><span class="nx">value</span><span class="p">)</span>
+	<span class="kd">var</span> <span class="nx">txs</span> <span class="o">=</span> <span class="p">[]</span>
+	<span class="c1">// Load stored transactions</span>
+	<span class="kd">var</span> <span class="nx">stored</span> <span class="o">=</span> <span class="nx">storage</span><span class="p">.</span><span class="kd">get</span><span class="p">(</span><span class="dl">'</span><span class="s1">txs</span><span class="dl">'</span><span class="p">);</span>
+	<span class="k">if</span> <span class="p">(</span><span class="nx">stored</span> <span class="o">!=</span> <span class="dl">""</span><span class="p">)</span> <span class="p">{</span>
+		<span class="nx">txs</span> <span class="o">=</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">stored</span><span class="p">)</span>
+	<span class="p">}</span>
+	<span class="c1">// Add this to the storage</span>
+	<span class="nx">txs</span><span class="p">.</span><span class="nx">push</span><span class="p">({</span><span class="na">tstamp</span><span class="p">:</span> <span class="k">new</span> <span class="nb">Date</span><span class="p">().</span><span class="nx">getTime</span><span class="p">(),</span> <span class="na">value</span><span class="p">:</span> <span class="nx">value</span><span class="p">});</span>
+	<span class="nx">storage</span><span class="p">.</span><span class="nx">put</span><span class="p">(</span><span class="dl">"</span><span class="s2">txs</span><span class="dl">"</span><span class="p">,</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">txs</span><span class="p">));</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h2 id="example-2-allow-destination">Example 2: allow destination</h2>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">function</span> <span class="nx">ApproveTx</span><span class="p">(</span><span class="nx">r</span><span class="p">)</span> <span class="p">{</span>
+	<span class="k">if</span> <span class="p">(</span><span class="nx">r</span><span class="p">.</span><span class="nx">transaction</span><span class="p">.</span><span class="k">from</span><span class="p">.</span><span class="nx">toLowerCase</span><span class="p">()</span> <span class="o">==</span> <span class="dl">"</span><span class="s2">0x0000000000000000000000000000000000001337</span><span class="dl">"</span><span class="p">)</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="dl">"</span><span class="s2">Approve</span><span class="dl">"</span>
+	<span class="p">}</span>
+	<span class="k">if</span> <span class="p">(</span><span class="nx">r</span><span class="p">.</span><span class="nx">transaction</span><span class="p">.</span><span class="k">from</span><span class="p">.</span><span class="nx">toLowerCase</span><span class="p">()</span> <span class="o">==</span> <span class="dl">"</span><span class="s2">0x000000000000000000000000000000000000dead</span><span class="dl">"</span><span class="p">)</span> <span class="p">{</span>
+		<span class="k">return</span> <span class="dl">"</span><span class="s2">Reject</span><span class="dl">"</span>
+	<span class="p">}</span>
+	<span class="c1">// Otherwise goes to manual processing</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h2 id="example-3-allow-listing">Example 3: Allow listing</h2>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">function</span> <span class="nx">ApproveListing</span><span class="p">()</span> <span class="p">{</span>
+	<span class="k">return</span> <span class="dl">"</span><span class="s2">Approve</span><span class="dl">"</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+    </div>

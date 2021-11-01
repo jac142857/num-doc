@@ -1,0 +1,853 @@
+  <div class="col-md-9" id="content">
+
+      <h3 id="external-api">External API</h3>
+
+<p>Clef listens to HTTP requests on <code class="language-plaintext highlighter-rouge">http.addr</code>:<code class="language-plaintext highlighter-rouge">http.port</code> (or to IPC on <code class="language-plaintext highlighter-rouge">ipcpath</code>), with the same JSON-RPC standard as Geth. The messages are expected to be <a href="https://www.jsonrpc.org/specification">JSON-RPC 2.0 standard</a>.</p>
+
+<p>Some of these calls can require user interaction. Clients must be aware that responses may be delayed significantly or may never be received if a user decides to ignore the confirmation request.</p>
+
+<p>The External API is <strong>untrusted</strong>: it does not accept credentials, nor does it expect that requests have any authority.</p>
+
+<h3 id="internal-ui-api">Internal UI API</h3>
+
+<p>Clef has one native console-based UI, for operation without any standalone tools. However, there is also an API to communicate with an external UI. To enable that UI, the signer needs to be executed with the <code class="language-plaintext highlighter-rouge">--stdio-ui</code> option, which allocates <code class="language-plaintext highlighter-rouge">stdin</code> / <code class="language-plaintext highlighter-rouge">stdout</code> for the UI API.</p>
+
+<p>An example (insecure) proof-of-concept of has been implemented in <code class="language-plaintext highlighter-rouge">pythonsigner.py</code>.</p>
+
+<p>The model is as follows:</p>
+
+<ul>
+  <li>The user starts the UI app (<code class="language-plaintext highlighter-rouge">pythonsigner.py</code>).</li>
+  <li>The UI app starts <code class="language-plaintext highlighter-rouge">clef</code> with <code class="language-plaintext highlighter-rouge">--stdio-ui</code>, and listens to the
+process output for confirmation-requests.</li>
+  <li><code class="language-plaintext highlighter-rouge">clef</code> opens the external HTTP API.</li>
+  <li>When the <code class="language-plaintext highlighter-rouge">signer</code> receives requests, it sends a JSON-RPC request via <code class="language-plaintext highlighter-rouge">stdout</code>.</li>
+  <li>The UI app prompts the user accordingly, and responds to <code class="language-plaintext highlighter-rouge">clef</code>.</li>
+  <li><code class="language-plaintext highlighter-rouge">clef</code> signs (or not), and responds to the original request.</li>
+</ul>
+
+<h3 id="more-resoruces">More resoruces</h3>
+
+<ul>
+  <li>Changelog for <a href="https://github.com/ethereum/go-ethereum/blob/master/cmd/clef/extapi_changelog.md">External API</a></li>
+  <li>Changelog for <a href="https://github.com/ethereum/go-ethereum/blob/master/cmd/clef/intapi_changelog.md">UI API</a></li>
+  <li>Documentation about <a href="https://geth.ethereum.org/docs/clef/datatypes">Datatypes</a></li>
+</ul>
+
+<h2 id="external-api-1">External API</h2>
+
+<p>See the <a href="https://github.com/ethereum/go-ethereum/blob/master/cmd/clef/extapi_changelog.md">external API changelog</a> for information about changes to this API.</p>
+
+<h3 id="encoding">Encoding</h3>
+<ul>
+  <li>number: positive integers that are hex encoded</li>
+  <li>data: hex encoded data</li>
+  <li>string: ASCII string</li>
+</ul>
+
+<p>All hex encoded values must be prefixed with <code class="language-plaintext highlighter-rouge">0x</code>.</p>
+
+<h3 id="account_new">account_new</h3>
+
+<h4 id="create-new-password-protected-account">Create new password protected account</h4>
+
+<p>The signer will generate a new private key, encrypt it according to <a href="https://github.com/ethereum/wiki/wiki/Web3-Secret-Storage-Definition">web3 keystore spec</a> and store it in the keystore directory.<br>
+The client is responsible for creating a backup of the keystore. If the keystore is lost there is no method of retrieving lost accounts.</p>
+
+<h4 id="arguments">Arguments</h4>
+
+<p>None</p>
+
+<h4 id="result">Result</h4>
+<ul>
+  <li>address [string]: account address that is derived from the generated key</li>
+</ul>
+
+<h4 id="sample-call">Sample call</h4>
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"jsonrpc"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2.0"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"method"</span><span class="p">:</span><span class="w"> </span><span class="s2">"account_new"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"params"</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+<p>Response</p>
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"jsonrpc"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2.0"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"result"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0xbea9183f8f4f03d427f6bcea17388bdff1cab133"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<h3 id="account_list">account_list</h3>
+
+<h4 id="list-available-accounts">List available accounts</h4>
+<p>List all accounts that this signer currently manages</p>
+
+<h4 id="arguments-1">Arguments</h4>
+
+<p>None</p>
+
+<h4 id="result-1">Result</h4>
+<ul>
+  <li>array with account records:
+    <ul>
+      <li>account.address [string]: account address that is derived from the generated key</li>
+    </ul>
+  </li>
+</ul>
+
+<h4 id="sample-call-1">Sample call</h4>
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"jsonrpc"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2.0"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"method"</span><span class="p">:</span><span class="w"> </span><span class="s2">"account_list"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+<p>Response</p>
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"jsonrpc"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2.0"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"result"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="s2">"0xafb2f771f58513609765698f65d3f2f0224a956f"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"0xbea9183f8f4f03d427f6bcea17388bdff1cab133"</span><span class="w">
+  </span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<h3 id="account_signtransaction">account_signTransaction</h3>
+
+<h4 id="sign-transactions">Sign transactions</h4>
+<p>Signs a transaction and responds with the signed transaction in RLP-encoded and JSON forms. Supports both legacy and EIP-1559-style transactions.</p>
+
+<h4 id="arguments-2">Arguments</h4>
+<ol>
+  <li>transaction object (legacy):
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">from</code> [address]: account to send the transaction from</li>
+      <li><code class="language-plaintext highlighter-rouge">to</code> [address]: receiver account. If omitted or <code class="language-plaintext highlighter-rouge">0x</code>, will cause contract creation.</li>
+      <li><code class="language-plaintext highlighter-rouge">gas</code> [number]: maximum amount of gas to burn</li>
+      <li><code class="language-plaintext highlighter-rouge">gasPrice</code> [number]: gas price</li>
+      <li><code class="language-plaintext highlighter-rouge">value</code> [number:optional]: amount of Wei to send with the transaction</li>
+      <li><code class="language-plaintext highlighter-rouge">data</code> [data:optional]:  input data</li>
+      <li><code class="language-plaintext highlighter-rouge">nonce</code> [number]: account nonce</li>
+    </ul>
+  </li>
+  <li>transaction object (1559):
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">from</code> [address]: account to send the transaction from</li>
+      <li><code class="language-plaintext highlighter-rouge">to</code> [address]: receiver account. If omitted or <code class="language-plaintext highlighter-rouge">0x</code>, will cause contract creation.</li>
+      <li><code class="language-plaintext highlighter-rouge">gas</code> [number]: maximum amount of gas to burn</li>
+      <li><code class="language-plaintext highlighter-rouge">maxPriorityFeePerGas</code> [number]: maximum priority fee per unit of gas for the transaction</li>
+      <li><code class="language-plaintext highlighter-rouge">maxFeePerGas</code> [number]: maximum fee per unit of gas for the transaction</li>
+      <li><code class="language-plaintext highlighter-rouge">value</code> [number:optional]: amount of Wei to send with the transaction</li>
+      <li><code class="language-plaintext highlighter-rouge">data</code> [data:optional]:  input data</li>
+      <li><code class="language-plaintext highlighter-rouge">nonce</code> [number]: account nonce</li>
+    </ul>
+  </li>
+  <li>method signature [string:optional]
+    <ul>
+      <li>The method signature, if present, is to aid decoding the calldata. Should consist of <code class="language-plaintext highlighter-rouge">methodname(paramtype,...)</code>, e.g. <code class="language-plaintext highlighter-rouge">transfer(uint256,address)</code>. The signer may use this data to parse the supplied calldata, and show the user. The data, however, is considered totally untrusted, and reliability is not expected.</li>
+    </ul>
+  </li>
+</ol>
+
+<h4 id="result-2">Result</h4>
+<ul>
+  <li>raw [data]: signed transaction in RLP encoded form</li>
+  <li>tx [json]: signed transaction in JSON form</li>
+</ul>
+
+<h4 id="sample-call-legacy">Sample call (legacy)</h4>
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"jsonrpc"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2.0"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"method"</span><span class="p">:</span><span class="w"> </span><span class="s2">"account_signTransaction"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"params"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"from"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x1923f626bb8dc025849e00f99c25fe2b2f7fb0db"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"gas"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x55555"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"gasPrice"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x1234"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"input"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0xabcd"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"nonce"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x0"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"to"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x07a565b7ed7d7a678680a4c162885bedbb695fe0"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"value"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x1234"</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+<p>Response</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"jsonrpc"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2.0"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"result"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"raw"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0xf88380018203339407a565b7ed7d7a678680a4c162885bedbb695fe080a44401a6e4000000000000000000000000000000000000000000000000000000000000001226a0223a7c9bcf5531c99be5ea7082183816eb20cfe0bbc322e97cc5c7f71ab8b20ea02aadee6b34b45bb15bc42d9c09de4a6754e7000908da72d48cc7704971491663"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"tx"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"nonce"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x0"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"gasPrice"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x1234"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"gas"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x55555"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"to"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x07a565b7ed7d7a678680a4c162885bedbb695fe0"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"value"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x1234"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"input"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0xabcd"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"v"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x26"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"r"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x223a7c9bcf5531c99be5ea7082183816eb20cfe0bbc322e97cc5c7f71ab8b20e"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"s"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x2aadee6b34b45bb15bc42d9c09de4a6754e7000908da72d48cc7704971491663"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"hash"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0xeba2df809e7a612a0a0d444ccfa5c839624bdc00dd29e3340d46df3870f8a30e"</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<h4 id="sample-call-1559">Sample call (1559)</h4>
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"jsonrpc"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2.0"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"method"</span><span class="p">:</span><span class="w"> </span><span class="s2">"account_signTransaction"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"params"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"from"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0xd1a9C60791e8440AEd92019a2C3f6c336ffefA27"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"to"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x8A8eAFb1cf62BfBeb1741769DAE1a9dd47996192"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"gas"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x33333"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"maxPriorityFeePerGas"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x174876E800"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"maxFeePerGas"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x174876E800"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"nonce"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x0"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"value"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x10"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"data"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x4401a6e40000000000000000000000000000000000000000000000000000000000000012"</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+<p>Response</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"jsonrpc"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2.0"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"result"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"raw"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x02f891018085174876e80085174876e80083033333948a8eafb1cf62bfbeb1741769dae1a9dd4799619210a44401a6e40000000000000000000000000000000000000000000000000000000000000012c080a0c8b59180c6e0c154284402b52d772f1afcf8ec2d245cf75bfb3212ebe676135ba02c660aaebf92d5e314fc2ba4c70f018915d174c3c1fc6e4e38d00ebf1a5bb69f"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"tx"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> 
+      </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x2"</span><span class="p">,</span><span class="w"> 
+      </span><span class="nl">"nonce"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x0"</span><span class="p">,</span><span class="w"> 
+      </span><span class="nl">"gasPrice"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"maxPriorityFeePerGas"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x174876e800"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"maxFeePerGas"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x174876e800"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"gas"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x33333"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"value"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x10"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"input"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x4401a6e40000000000000000000000000000000000000000000000000000000000000012"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"v"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x0"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"r"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0xc8b59180c6e0c154284402b52d772f1afcf8ec2d245cf75bfb3212ebe676135b"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"s"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x2c660aaebf92d5e314fc2ba4c70f018915d174c3c1fc6e4e38d00ebf1a5bb69f"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"to"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x8a8eafb1cf62bfbeb1741769dae1a9dd47996192"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"chainId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x1"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"accessList"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span><span class="w">
+      </span><span class="nl">"hash"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x8e096eb11ea89aa83900e6816fb182ff0adb2c85d270998ca2dd2394ec6c5a73"</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<h4 id="sample-call-with-abi-data">Sample call with ABI-data</h4>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">67</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"jsonrpc"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2.0"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"method"</span><span class="p">:</span><span class="w"> </span><span class="s2">"account_signTransaction"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"params"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"from"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x694267f14675d7e1b9494fd8d72fefe1755710fa"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"gas"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x333"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"gasPrice"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x1"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"nonce"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x0"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"to"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x07a565b7ed7d7a678680a4c162885bedbb695fe0"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"value"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x0"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"data"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x4401a6e40000000000000000000000000000000000000000000000000000000000000012"</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="s2">"safeSend(address)"</span><span class="w">
+  </span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+<p>Response</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"jsonrpc"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2.0"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">67</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"result"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"raw"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0xf88380018203339407a565b7ed7d7a678680a4c162885bedbb695fe080a44401a6e4000000000000000000000000000000000000000000000000000000000000001226a0223a7c9bcf5531c99be5ea7082183816eb20cfe0bbc322e97cc5c7f71ab8b20ea02aadee6b34b45bb15bc42d9c09de4a6754e7000908da72d48cc7704971491663"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"tx"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"nonce"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x0"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"gasPrice"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x1"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"gas"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x333"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"to"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x07a565b7ed7d7a678680a4c162885bedbb695fe0"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"value"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x0"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"input"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x4401a6e40000000000000000000000000000000000000000000000000000000000000012"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"v"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x26"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"r"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x223a7c9bcf5531c99be5ea7082183816eb20cfe0bbc322e97cc5c7f71ab8b20e"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"s"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x2aadee6b34b45bb15bc42d9c09de4a6754e7000908da72d48cc7704971491663"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"hash"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0xeba2df809e7a612a0a0d444ccfa5c839624bdc00dd29e3340d46df3870f8a30e"</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p>Bash example:</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&gt;</span> curl <span class="nt">-H</span> <span class="s2">"Content-Type: application/json"</span> <span class="nt">-X</span> POST <span class="nt">--data</span> <span class="s1">'{"jsonrpc":"2.0","method":"account_signTransaction","params":[{"from":"0x694267f14675d7e1b9494fd8d72fefe1755710fa","gas":"0x333","gasPrice":"0x1","nonce":"0x0","to":"0x07a565b7ed7d7a678680a4c162885bedbb695fe0", "value":"0x0", "data":"0x4401a6e40000000000000000000000000000000000000000000000000000000000000012"},"safeSend(address)"],"id":67}'</span> http://localhost:8550/
+
+<span class="o">{</span><span class="s2">"jsonrpc"</span>:<span class="s2">"2.0"</span>,<span class="s2">"id"</span>:67,<span class="s2">"result"</span>:<span class="o">{</span><span class="s2">"raw"</span>:<span class="s2">"0xf88380018203339407a565b7ed7d7a678680a4c162885bedbb695fe080a44401a6e4000000000000000000000000000000000000000000000000000000000000001226a0223a7c9bcf5531c99be5ea7082183816eb20cfe0bbc322e97cc5c7f71ab8b20ea02aadee6b34b45bb15bc42d9c09de4a6754e7000908da72d48cc7704971491663"</span>,<span class="s2">"tx"</span>:<span class="o">{</span><span class="s2">"nonce"</span>:<span class="s2">"0x0"</span>,<span class="s2">"gasPrice"</span>:<span class="s2">"0x1"</span>,<span class="s2">"gas"</span>:<span class="s2">"0x333"</span>,<span class="s2">"to"</span>:<span class="s2">"0x07a565b7ed7d7a678680a4c162885bedbb695fe0"</span>,<span class="s2">"value"</span>:<span class="s2">"0x0"</span>,<span class="s2">"input"</span>:<span class="s2">"0x4401a6e40000000000000000000000000000000000000000000000000000000000000012"</span>,<span class="s2">"v"</span>:<span class="s2">"0x26"</span>,<span class="s2">"r"</span>:<span class="s2">"0x223a7c9bcf5531c99be5ea7082183816eb20cfe0bbc322e97cc5c7f71ab8b20e"</span>,<span class="s2">"s"</span>:<span class="s2">"0x2aadee6b34b45bb15bc42d9c09de4a6754e7000908da72d48cc7704971491663"</span>,<span class="s2">"hash"</span>:<span class="s2">"0xeba2df809e7a612a0a0d444ccfa5c839624bdc00dd29e3340d46df3870f8a30e"</span><span class="o">}}}</span>
+</code></pre></div></div>
+
+<h3 id="account_signdata">account_signData</h3>
+
+<h4 id="sign-data">Sign data</h4>
+<p>Signs a chunk of data and returns the calculated signature.</p>
+
+<h4 id="arguments-3">Arguments</h4>
+<ul>
+  <li>content type [string]: type of signed data
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">text/validator</code>: hex data with custom validator defined in a contract</li>
+      <li><code class="language-plaintext highlighter-rouge">application/clique</code>: <a href="https://github.com/ethereum/EIPs/issues/225">clique</a> headers</li>
+      <li><code class="language-plaintext highlighter-rouge">text/plain</code>: simple hex data validated by <code class="language-plaintext highlighter-rouge">account_ecRecover</code></li>
+    </ul>
+  </li>
+  <li>account [address]: account to sign with</li>
+  <li>data [object]: data to sign</li>
+</ul>
+
+<h4 id="result-3">Result</h4>
+<ul>
+  <li>calculated signature [data]</li>
+</ul>
+
+<h4 id="sample-call-2">Sample call</h4>
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"jsonrpc"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2.0"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"method"</span><span class="p">:</span><span class="w"> </span><span class="s2">"account_signData"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"params"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="s2">"data/plain"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"0x1923f626bb8dc025849e00f99c25fe2b2f7fb0db"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"0xaabbccdd"</span><span class="w">
+  </span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+<p>Response</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"jsonrpc"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2.0"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"result"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x5b6693f153b48ec1c706ba4169960386dbaa6903e249cc79a8e6ddc434451d417e1e57327872c7f538beeb323c300afa9999a3d4a5de6caf3be0d5ef832b67ef1c"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<h3 id="account_signtypeddata">account_signTypedData</h3>
+
+<h4 id="sign-data-1">Sign data</h4>
+<p>Signs a chunk of structured data conformant to <a href="https://github.com/ethereum/EIPs/blob/master/EIPS/eip-712.md">EIP-712</a> and returns the calculated signature.</p>
+
+<h4 id="arguments-4">Arguments</h4>
+<ul>
+  <li>account [address]: account to sign with</li>
+  <li>data [object]: data to sign</li>
+</ul>
+
+<h4 id="result-4">Result</h4>
+<ul>
+  <li>calculated signature [data]</li>
+</ul>
+
+<h4 id="sample-call-3">Sample call</h4>
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">68</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"jsonrpc"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2.0"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"method"</span><span class="p">:</span><span class="w"> </span><span class="s2">"account_signTypedData"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"params"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="s2">"0xcd2a3d9f938e13cd947ec05abc7fe734df8dd826"</span><span class="p">,</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"types"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"EIP712Domain"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+          </span><span class="p">{</span><span class="w">
+            </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"name"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="w">
+          </span><span class="p">},</span><span class="w">
+          </span><span class="p">{</span><span class="w">
+            </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"version"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="w">
+          </span><span class="p">},</span><span class="w">
+          </span><span class="p">{</span><span class="w">
+            </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"chainId"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"uint256"</span><span class="w">
+          </span><span class="p">},</span><span class="w">
+          </span><span class="p">{</span><span class="w">
+            </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"verifyingContract"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"address"</span><span class="w">
+          </span><span class="p">}</span><span class="w">
+        </span><span class="p">],</span><span class="w">
+        </span><span class="nl">"Person"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+          </span><span class="p">{</span><span class="w">
+            </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"name"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="w">
+          </span><span class="p">},</span><span class="w">
+          </span><span class="p">{</span><span class="w">
+            </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"wallet"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"address"</span><span class="w">
+          </span><span class="p">}</span><span class="w">
+        </span><span class="p">],</span><span class="w">
+        </span><span class="nl">"Mail"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+          </span><span class="p">{</span><span class="w">
+            </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"from"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Person"</span><span class="w">
+          </span><span class="p">},</span><span class="w">
+          </span><span class="p">{</span><span class="w">
+            </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"to"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Person"</span><span class="w">
+          </span><span class="p">},</span><span class="w">
+          </span><span class="p">{</span><span class="w">
+            </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"contents"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"string"</span><span class="w">
+          </span><span class="p">}</span><span class="w">
+        </span><span class="p">]</span><span class="w">
+      </span><span class="p">},</span><span class="w">
+      </span><span class="nl">"primaryType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Mail"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"domain"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Ether Mail"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"chainId"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"verifyingContract"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"</span><span class="w">
+      </span><span class="p">},</span><span class="w">
+      </span><span class="nl">"message"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"from"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+          </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Cow"</span><span class="p">,</span><span class="w">
+          </span><span class="nl">"wallet"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"</span><span class="w">
+        </span><span class="p">},</span><span class="w">
+        </span><span class="nl">"to"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+          </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Bob"</span><span class="p">,</span><span class="w">
+          </span><span class="nl">"wallet"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"</span><span class="w">
+        </span><span class="p">},</span><span class="w">
+        </span><span class="nl">"contents"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Hello, Bob!"</span><span class="w">
+      </span><span class="p">}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+<p>Response</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+    </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"jsonrpc"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2.0"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"result"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x4355c47d63924e8a72e509b65029052eb6c299d53a04e167c5775fd466751c9d07299936d304c153f6443dfa05f40ff007d72911b6f72307f996231605b915621c"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<h3 id="account_ecrecover">account_ecRecover</h3>
+
+<h4 id="recover-the-signing-address">Recover the signing address</h4>
+
+<p>Derive the address from the account that was used to sign data with content type <code class="language-plaintext highlighter-rouge">text/plain</code> and the signature.</p>
+
+<h4 id="arguments-5">Arguments</h4>
+<ul>
+  <li>data [data]: data that was signed</li>
+  <li>signature [data]: the signature to verify</li>
+</ul>
+
+<h4 id="result-5">Result</h4>
+<ul>
+  <li>derived account [address]</li>
+</ul>
+
+<h4 id="sample-call-4">Sample call</h4>
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"jsonrpc"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2.0"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"method"</span><span class="p">:</span><span class="w"> </span><span class="s2">"account_ecRecover"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"params"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="s2">"0xaabbccdd"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"0x5b6693f153b48ec1c706ba4169960386dbaa6903e249cc79a8e6ddc434451d417e1e57327872c7f538beeb323c300afa9999a3d4a5de6caf3be0d5ef832b67ef1c"</span><span class="w">
+  </span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+<p>Response</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"jsonrpc"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2.0"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"result"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x1923f626bb8dc025849e00f99c25fe2b2f7fb0db"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<h3 id="account_version">account_version</h3>
+
+<h4 id="get-external-api-version">Get external API version</h4>
+
+<p>Get the version of the external API used by Clef.</p>
+
+<h4 id="arguments-6">Arguments</h4>
+
+<p>None</p>
+
+<h4 id="result-6">Result</h4>
+
+<ul>
+  <li>external API version [string]</li>
+</ul>
+
+<h4 id="sample-call-5">Sample call</h4>
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"jsonrpc"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2.0"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"method"</span><span class="p">:</span><span class="w"> </span><span class="s2">"account_version"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"params"</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p>Response</p>
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+    </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"jsonrpc"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2.0"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"result"</span><span class="p">:</span><span class="w"> </span><span class="s2">"6.0.0"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<h2 id="ui-api">UI API</h2>
+
+<p>These methods needs to be implemented by a UI listener.</p>
+
+<p>By starting the signer with the switch <code class="language-plaintext highlighter-rouge">--stdio-ui-test</code>, the signer will invoke all known methods, and expect the UI to respond with
+denials. This can be used during development to ensure that the API is (at least somewhat) correctly implemented.
+See <code class="language-plaintext highlighter-rouge">pythonsigner</code>, which can be invoked via <code class="language-plaintext highlighter-rouge">python3 pythonsigner.py test</code> to perform the ‘denial-handshake-test’.</p>
+
+<p>All methods in this API use object-based parameters, so that there can be no mixup of parameters: each piece of data is accessed by key.</p>
+
+<p>See the <a href="https://github.com/ethereum/go-ethereum/blob/master/cmd/clef/intapi_changelog.md">ui API changelog</a> for information about changes to this API.</p>
+
+<p>OBS! A slight deviation from <code class="language-plaintext highlighter-rouge">json</code> standard is in place: every request and response should be confined to a single line.
+Whereas the <code class="language-plaintext highlighter-rouge">json</code> specification allows for linebreaks, linebreaks <strong>should not</strong> be used in this communication channel, to make
+things simpler for both parties.</p>
+
+<h3 id="approvetx--ui_approvetx">ApproveTx / <code class="language-plaintext highlighter-rouge">ui_approveTx</code></h3>
+
+<p>Invoked when there’s a transaction for approval.</p>
+
+<h4 id="sample-call-6">Sample call</h4>
+
+<p>Here’s a method invocation:</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+curl <span class="nt">-i</span> <span class="nt">-H</span> <span class="s2">"Content-Type: application/json"</span> <span class="nt">-X</span> POST <span class="nt">--data</span> <span class="s1">'{"jsonrpc":"2.0","method":"account_signTransaction","params":[{"from":"0x694267f14675d7e1b9494fd8d72fefe1755710fa","gas":"0x333","gasPrice":"0x1","nonce":"0x0","to":"0x07a565b7ed7d7a678680a4c162885bedbb695fe0", "value":"0x0", "data":"0x4401a6e40000000000000000000000000000000000000000000000000000000000000012"},"safeSend(address)"],"id":67}'</span> http://localhost:8550/
+</code></pre></div></div>
+<p>Results in the following invocation on the UI:</p>
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="w">
+</span><span class="p">{</span><span class="w">
+  </span><span class="nl">"jsonrpc"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2.0"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"method"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ui_approveTx"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"params"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"transaction"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"from"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x0x694267f14675d7e1b9494fd8d72fefe1755710fa"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"to"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x0x07a565b7ed7d7a678680a4c162885bedbb695fe0"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"gas"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x333"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"gasPrice"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x1"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"value"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x0"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"nonce"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x0"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"data"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x4401a6e40000000000000000000000000000000000000000000000000000000000000012"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"input"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="w">
+      </span><span class="p">},</span><span class="w">
+      </span><span class="nl">"call_info"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+          </span><span class="p">{</span><span class="w">
+            </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"WARNING"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Invalid checksum on to-address"</span><span class="w">
+          </span><span class="p">},</span><span class="w">
+          </span><span class="p">{</span><span class="w">
+            </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Info"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"safeSend(address: 0x0000000000000000000000000000000000000012)"</span><span class="w">
+          </span><span class="p">}</span><span class="w">
+        </span><span class="p">],</span><span class="w">
+      </span><span class="nl">"meta"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"remote"</span><span class="p">:</span><span class="w"> </span><span class="s2">"127.0.0.1:48486"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"local"</span><span class="p">:</span><span class="w"> </span><span class="s2">"localhost:8550"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"scheme"</span><span class="p">:</span><span class="w"> </span><span class="s2">"HTTP/1.1"</span><span class="w">
+      </span><span class="p">}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+
+</span></code></pre></div></div>
+
+<p>The same method invocation, but with invalid data:</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+curl <span class="nt">-i</span> <span class="nt">-H</span> <span class="s2">"Content-Type: application/json"</span> <span class="nt">-X</span> POST <span class="nt">--data</span> <span class="s1">'{"jsonrpc":"2.0","method":"account_signTransaction","params":[{"from":"0x694267f14675d7e1b9494fd8d72fefe1755710fa","gas":"0x333","gasPrice":"0x1","nonce":"0x0","to":"0x07a565b7ed7d7a678680a4c162885bedbb695fe0", "value":"0x0", "data":"0x4401a6e40000000000000002000000000000000000000000000000000000000000000012"},"safeSend(address)"],"id":67}'</span> http://localhost:8550/
+</code></pre></div></div>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="w">
+</span><span class="p">{</span><span class="w">
+  </span><span class="nl">"jsonrpc"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2.0"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"method"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ui_approveTx"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"params"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"transaction"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"from"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x0x694267f14675d7e1b9494fd8d72fefe1755710fa"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"to"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x0x07a565b7ed7d7a678680a4c162885bedbb695fe0"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"gas"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x333"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"gasPrice"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x1"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"value"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x0"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"nonce"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x0"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"data"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x4401a6e40000000000000002000000000000000000000000000000000000000000000012"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"input"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="w">
+      </span><span class="p">},</span><span class="w">
+      </span><span class="nl">"call_info"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+          </span><span class="p">{</span><span class="w">
+            </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"WARNING"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Invalid checksum on to-address"</span><span class="w">
+          </span><span class="p">},</span><span class="w">
+          </span><span class="p">{</span><span class="w">
+            </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"WARNING"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Transaction data did not match ABI-interface: WARNING: Supplied data is stuffed with extra data. </span><span class="se">\n</span><span class="s2">Want 0000000000000002000000000000000000000000000000000000000000000012</span><span class="se">\n</span><span class="s2">Have 0000000000000000000000000000000000000000000000000000000000000012</span><span class="se">\n</span><span class="s2">for method safeSend(address)"</span><span class="w">
+          </span><span class="p">}</span><span class="w">
+        </span><span class="p">],</span><span class="w">
+      </span><span class="nl">"meta"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"remote"</span><span class="p">:</span><span class="w"> </span><span class="s2">"127.0.0.1:48492"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"local"</span><span class="p">:</span><span class="w"> </span><span class="s2">"localhost:8550"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"scheme"</span><span class="p">:</span><span class="w"> </span><span class="s2">"HTTP/1.1"</span><span class="w">
+      </span><span class="p">}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+
+
+</span></code></pre></div></div>
+
+<p>One which has missing <code class="language-plaintext highlighter-rouge">to</code>, but with no <code class="language-plaintext highlighter-rouge">data</code>:</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="w">
+</span><span class="p">{</span><span class="w">
+  </span><span class="nl">"jsonrpc"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2.0"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"method"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ui_approveTx"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"params"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"transaction"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"from"</span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"to"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"gas"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x0"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"gasPrice"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x0"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"value"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x0"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"nonce"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x0"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"data"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"input"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="w">
+      </span><span class="p">},</span><span class="w">
+      </span><span class="nl">"call_info"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+          </span><span class="p">{</span><span class="w">
+            </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"CRITICAL"</span><span class="p">,</span><span class="w">
+            </span><span class="nl">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Tx will create contract with empty code!"</span><span class="w">
+          </span><span class="p">}</span><span class="w">
+        </span><span class="p">],</span><span class="w">
+      </span><span class="nl">"meta"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"remote"</span><span class="p">:</span><span class="w"> </span><span class="s2">"signer binary"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"local"</span><span class="p">:</span><span class="w"> </span><span class="s2">"main"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"scheme"</span><span class="p">:</span><span class="w"> </span><span class="s2">"in-proc"</span><span class="w">
+      </span><span class="p">}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<h3 id="approvelisting--ui_approvelisting">ApproveListing / <code class="language-plaintext highlighter-rouge">ui_approveListing</code></h3>
+
+<p>Invoked when a request for account listing has been made.</p>
+
+<h4 id="sample-call-7">Sample call</h4>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="w">
+</span><span class="p">{</span><span class="w">
+  </span><span class="nl">"jsonrpc"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2.0"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"method"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ui_approveListing"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"params"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"accounts"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+        </span><span class="p">{</span><span class="w">
+          </span><span class="nl">"url"</span><span class="p">:</span><span class="w"> </span><span class="s2">"keystore:///home/bazonk/.ethereum/keystore/UTC--2017-11-20T14-44-54.089682944Z--123409812340981234098123409812deadbeef42"</span><span class="p">,</span><span class="w">
+          </span><span class="nl">"address"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x123409812340981234098123409812deadbeef42"</span><span class="w">
+        </span><span class="p">},</span><span class="w">
+        </span><span class="p">{</span><span class="w">
+          </span><span class="nl">"url"</span><span class="p">:</span><span class="w"> </span><span class="s2">"keystore:///home/bazonk/.ethereum/keystore/UTC--2017-11-23T21-59-03.199240693Z--cafebabedeadbeef34098123409812deadbeef42"</span><span class="p">,</span><span class="w">
+          </span><span class="nl">"address"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0xcafebabedeadbeef34098123409812deadbeef42"</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+      </span><span class="p">],</span><span class="w">
+      </span><span class="nl">"meta"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"remote"</span><span class="p">:</span><span class="w"> </span><span class="s2">"signer binary"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"local"</span><span class="p">:</span><span class="w"> </span><span class="s2">"main"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"scheme"</span><span class="p">:</span><span class="w"> </span><span class="s2">"in-proc"</span><span class="w">
+      </span><span class="p">}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+
+</span></code></pre></div></div>
+
+<h3 id="approvesigndata--ui_approvesigndata">ApproveSignData / <code class="language-plaintext highlighter-rouge">ui_approveSignData</code></h3>
+
+<h4 id="sample-call-8">Sample call</h4>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"jsonrpc"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2.0"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"method"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ui_approveSignData"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"params"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"address"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x123409812340981234098123409812deadbeef42"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"raw_data"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x01020304"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"messages"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+        </span><span class="p">{</span><span class="w">
+          </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"message"</span><span class="p">,</span><span class="w">
+          </span><span class="nl">"value"</span><span class="p">:</span><span class="w"> </span><span class="s2">"</span><span class="se">\u</span><span class="s2">0019Ethereum Signed Message:</span><span class="se">\n</span><span class="s2">4</span><span class="se">\u</span><span class="s2">0001</span><span class="se">\u</span><span class="s2">0002</span><span class="se">\u</span><span class="s2">0003</span><span class="se">\u</span><span class="s2">0004"</span><span class="p">,</span><span class="w">
+          </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"text/plain"</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+      </span><span class="p">],</span><span class="w">
+      </span><span class="nl">"hash"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x7e3a4e7a9d1744bc5c675c25e1234ca8ed9162bd17f78b9085e48047c15ac310"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"meta"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"remote"</span><span class="p">:</span><span class="w"> </span><span class="s2">"signer binary"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"local"</span><span class="p">:</span><span class="w"> </span><span class="s2">"main"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"scheme"</span><span class="p">:</span><span class="w"> </span><span class="s2">"in-proc"</span><span class="w">
+      </span><span class="p">}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<h3 id="approvenewaccount--ui_approvenewaccount">ApproveNewAccount / <code class="language-plaintext highlighter-rouge">ui_approveNewAccount</code></h3>
+
+<p>Invoked when a request for creating a new account has been made.</p>
+
+<h4 id="sample-call-9">Sample call</h4>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"jsonrpc"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2.0"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"method"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ui_approveNewAccount"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"params"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"meta"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"remote"</span><span class="p">:</span><span class="w"> </span><span class="s2">"signer binary"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"local"</span><span class="p">:</span><span class="w"> </span><span class="s2">"main"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"scheme"</span><span class="p">:</span><span class="w"> </span><span class="s2">"in-proc"</span><span class="w">
+      </span><span class="p">}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<h3 id="showinfo--ui_showinfo">ShowInfo / <code class="language-plaintext highlighter-rouge">ui_showInfo</code></h3>
+
+<p>The UI should show the info (a single message) to the user. Does not expect response.</p>
+
+<h4 id="sample-call-10">Sample call</h4>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"jsonrpc"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2.0"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">9</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"method"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ui_showInfo"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"params"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="s2">"Tests completed"</span><span class="w">
+  </span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+
+</span></code></pre></div></div>
+
+<h3 id="showerror--ui_showerror">ShowError / <code class="language-plaintext highlighter-rouge">ui_showError</code></h3>
+
+<p>The UI should show the error (a single message) to the user. Does not expect response.</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="w">
+</span><span class="p">{</span><span class="w">
+  </span><span class="nl">"jsonrpc"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2.0"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"method"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ui_showError"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"params"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="s2">"Something bad happened!"</span><span class="w">
+  </span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+
+</span></code></pre></div></div>
+
+<h3 id="onapprovedtx--ui_onapprovedtx">OnApprovedTx / <code class="language-plaintext highlighter-rouge">ui_onApprovedTx</code></h3>
+
+<p><code class="language-plaintext highlighter-rouge">OnApprovedTx</code> is called when a transaction has been approved and signed. The call contains the return value that will be sent to the external caller.  The return value from this method is ignored - the reason for having this callback is to allow the ruleset to keep track of approved transactions.</p>
+
+<p>When implementing rate-limited rules, this callback should be used.</p>
+
+<p>TLDR; Use this method to keep track of signed transactions, instead of using the data in <code class="language-plaintext highlighter-rouge">ApproveTx</code>.</p>
+
+<p>Example call:</p>
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="w">
+</span><span class="p">{</span><span class="w">
+  </span><span class="nl">"jsonrpc"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2.0"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"method"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ui_onApprovedTx"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"params"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"raw"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0xf88380018203339407a565b7ed7d7a678680a4c162885bedbb695fe080a44401a6e4000000000000000000000000000000000000000000000000000000000000001226a0223a7c9bcf5531c99be5ea7082183816eb20cfe0bbc322e97cc5c7f71ab8b20ea02aadee6b34b45bb15bc42d9c09de4a6754e7000908da72d48cc7704971491663"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"tx"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"nonce"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x0"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"gasPrice"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x1"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"gas"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x333"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"to"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x07a565b7ed7d7a678680a4c162885bedbb695fe0"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"value"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x0"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"input"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x4401a6e40000000000000000000000000000000000000000000000000000000000000012"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"v"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x26"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"r"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x223a7c9bcf5531c99be5ea7082183816eb20cfe0bbc322e97cc5c7f71ab8b20e"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"s"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0x2aadee6b34b45bb15bc42d9c09de4a6754e7000908da72d48cc7704971491663"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"hash"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0xeba2df809e7a612a0a0d444ccfa5c839624bdc00dd29e3340d46df3870f8a30e"</span><span class="w">
+      </span><span class="p">}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<h3 id="onsignerstartup--ui_onsignerstartup">OnSignerStartup / <code class="language-plaintext highlighter-rouge">ui_onSignerStartup</code></h3>
+
+<p>This method provides the UI with information about what API version the signer uses (both internal and external) as well as build-info and external API,
+in k/v-form.</p>
+
+<p>Example call:</p>
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="w">
+</span><span class="p">{</span><span class="w">
+  </span><span class="nl">"jsonrpc"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2.0"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"method"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ui_onSignerStartup"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"params"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"info"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"extapi_http"</span><span class="p">:</span><span class="w"> </span><span class="s2">"http://localhost:8550"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"extapi_ipc"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"extapi_version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2.0.0"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"intapi_version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1.2.0"</span><span class="w">
+      </span><span class="p">}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+
+</span></code></pre></div></div>
+
+<h3 id="oninputrequired--ui_oninputrequired">OnInputRequired / <code class="language-plaintext highlighter-rouge">ui_onInputRequired</code></h3>
+
+<p>Invoked when Clef requires user input (e.g. a password).</p>
+
+<p>Example call:</p>
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="w">
+</span><span class="p">{</span><span class="w">
+  </span><span class="nl">"jsonrpc"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2.0"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"method"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ui_onInputRequired"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"params"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Account password"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"prompt"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Please enter the password for account 0x694267f14675d7e1b9494fd8d72fefe1755710fa"</span><span class="p">,</span><span class="w">
+      </span><span class="nl">"isPassword"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+    </div>

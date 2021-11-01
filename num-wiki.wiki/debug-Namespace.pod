@@ -1,0 +1,1085 @@
+    <div class="col-md-9" id="content">
+
+      
+      <p>The <code class="language-plaintext highlighter-rouge">debug</code> API gives you access to several non-standard RPC methods, which will allow you
+to inspect, debug and set certain debugging flags during runtime.</p>
+
+<ul id="markdown-toc">
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-debug#debug_backtraceat" id="markdown-toc-debug_backtraceat">debug_backtraceAt</a></li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-debug#debug_blockprofile" id="markdown-toc-debug_blockprofile">debug_blockProfile</a></li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-debug#debug_cpuprofile" id="markdown-toc-debug_cpuprofile">debug_cpuProfile</a></li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-debug#debug_dumpblock" id="markdown-toc-debug_dumpblock">debug_dumpBlock</a>    <ul>
+      <li><a href="https://geth.ethereum.org/docs/rpc/ns-debug#example" id="markdown-toc-example">Example</a></li>
+    </ul>
+  </li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-debug#debug_gcstats" id="markdown-toc-debug_gcstats">debug_gcStats</a></li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-debug#debug_getblockrlp" id="markdown-toc-debug_getblockrlp">debug_getBlockRlp</a></li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-debug#debug_gotrace" id="markdown-toc-debug_gotrace">debug_goTrace</a></li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-debug#debug_memstats" id="markdown-toc-debug_memstats">debug_memStats</a></li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-debug#debug_seedhash" id="markdown-toc-debug_seedhash">debug_seedHash</a></li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-debug#debug_sethead" id="markdown-toc-debug_sethead">debug_setHead</a></li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-debug#debug_setblockprofilerate" id="markdown-toc-debug_setblockprofilerate">debug_setBlockProfileRate</a></li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-debug#debug_stacks" id="markdown-toc-debug_stacks">debug_stacks</a></li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-debug#debug_startcpuprofile" id="markdown-toc-debug_startcpuprofile">debug_startCPUProfile</a></li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-debug#debug_startgotrace" id="markdown-toc-debug_startgotrace">debug_startGoTrace</a></li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-debug#debug_stopcpuprofile" id="markdown-toc-debug_stopcpuprofile">debug_stopCPUProfile</a></li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-debug#debug_stopgotrace" id="markdown-toc-debug_stopgotrace">debug_stopGoTrace</a></li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-debug#debug_traceblock" id="markdown-toc-debug_traceblock">debug_traceBlock</a>    <ul>
+      <li><a href="https://geth.ethereum.org/docs/rpc/ns-debug#example-1" id="markdown-toc-example-1">Example</a></li>
+    </ul>
+  </li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-debug#debug_traceblockbynumber" id="markdown-toc-debug_traceblockbynumber">debug_traceBlockByNumber</a></li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-debug#debug_traceblockbyhash" id="markdown-toc-debug_traceblockbyhash">debug_traceBlockByHash</a></li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-debug#debug_traceblockfromfile" id="markdown-toc-debug_traceblockfromfile">debug_traceBlockFromFile</a></li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-debug#debug_standardtraceblocktofile" id="markdown-toc-debug_standardtraceblocktofile">debug_standardTraceBlockToFile</a></li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-debug#debug_standardtracebadblocktofile" id="markdown-toc-debug_standardtracebadblocktofile">debug_standardTraceBadBlockToFile</a></li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-debug#debug_tracetransaction" id="markdown-toc-debug_tracetransaction">debug_traceTransaction</a>    <ul>
+      <li><a href="https://geth.ethereum.org/docs/rpc/ns-debug#example-2" id="markdown-toc-example-2">Example</a></li>
+      <li><a href="https://geth.ethereum.org/docs/rpc/ns-debug#javascript-based-tracing" id="markdown-toc-javascript-based-tracing">JavaScript-based tracing</a></li>
+    </ul>
+  </li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-debug#debug_tracecall" id="markdown-toc-debug_tracecall">debug_traceCall</a>    <ul>
+      <li><a href="https://geth.ethereum.org/docs/rpc/ns-debug#example-3" id="markdown-toc-example-3">Example</a></li>
+    </ul>
+  </li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-debug#debug_verbosity" id="markdown-toc-debug_verbosity">debug_verbosity</a></li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-debug#debug_vmodule" id="markdown-toc-debug_vmodule">debug_vmodule</a>    <ul>
+      <li><a href="https://geth.ethereum.org/docs/rpc/ns-debug#examples" id="markdown-toc-examples">Examples</a></li>
+    </ul>
+  </li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-debug#debug_writeblockprofile" id="markdown-toc-debug_writeblockprofile">debug_writeBlockProfile</a></li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-debug#debug_writememprofile" id="markdown-toc-debug_writememprofile">debug_writeMemProfile</a></li>
+</ul>
+
+<h3 id="debug_backtraceat">debug_backtraceAt</h3>
+
+<p>Sets the logging backtrace location. When a backtrace location
+is set and a log message is emitted at that location, the stack
+of the goroutine executing the log statement will be printed to stderr.</p>
+
+<p>The location is specified as <code class="language-plaintext highlighter-rouge">&lt;filename&gt;:&lt;line&gt;</code>.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">debug.backtraceAt(string)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "debug_backtraceAt", "params": [string]}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Example:</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&gt;</span> <span class="nx">debug</span><span class="p">.</span><span class="nx">backtraceAt</span><span class="p">(</span><span class="dl">"</span><span class="s2">server.go:443</span><span class="dl">"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h3 id="debug_blockprofile">debug_blockProfile</h3>
+
+<p>Turns on block profiling for the given duration and writes
+profile data to disk. It uses a profile rate of 1 for most
+accurate information. If a different rate is desired, set
+the rate and write the profile manually using
+<code class="language-plaintext highlighter-rouge">debug_writeBlockProfile</code>.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">debug.blockProfile(file, seconds)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "debug_blockProfile", "params": [string, number]}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="debug_cpuprofile">debug_cpuProfile</h3>
+
+<p>Turns on CPU profiling for the given duration and writes
+profile data to disk.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">debug.cpuProfile(file, seconds)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "debug_cpuProfile", "params": [string, number]}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="debug_dumpblock">debug_dumpBlock</h3>
+
+<p>Retrieves the state that corresponds to the block number and returns a list of accounts (including
+storage and code).</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Go</td>
+      <td><code class="language-plaintext highlighter-rouge">debug.DumpBlock(number uint64) (state.World, error)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">debug.traceBlockByHash(number, [options])</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "debug_dumpBlock", "params": [number]}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="example">Example</h4>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&gt;</span> <span class="nx">debug</span><span class="p">.</span><span class="nx">dumpBlock</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="nl">fff7ac99c8e4feb60c9750054bdc14ce1857f181</span><span class="p">:</span> <span class="p">{</span>
+      <span class="na">balance</span><span class="p">:</span> <span class="dl">"</span><span class="s2">49358640978154672</span><span class="dl">"</span><span class="p">,</span>
+      <span class="na">code</span><span class="p">:</span> <span class="dl">""</span><span class="p">,</span>
+      <span class="na">codeHash</span><span class="p">:</span> <span class="dl">"</span><span class="s2">c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470</span><span class="dl">"</span><span class="p">,</span>
+      <span class="na">nonce</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+      <span class="na">root</span><span class="p">:</span> <span class="dl">"</span><span class="s2">56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421</span><span class="dl">"</span><span class="p">,</span>
+      <span class="na">storage</span><span class="p">:</span> <span class="p">{}</span>
+    <span class="p">},</span>
+    <span class="nx">fffbca3a38c3c5fcb3adbb8e63c04c3e629aafce</span><span class="p">:</span> <span class="p">{</span>
+      <span class="nl">balance</span><span class="p">:</span> <span class="dl">"</span><span class="s2">3460945928</span><span class="dl">"</span><span class="p">,</span>
+      <span class="nx">code</span><span class="p">:</span> <span class="dl">""</span><span class="p">,</span>
+      <span class="nx">codeHash</span><span class="p">:</span> <span class="dl">"</span><span class="s2">c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470</span><span class="dl">"</span><span class="p">,</span>
+      <span class="nx">nonce</span><span class="p">:</span> <span class="mi">657</span><span class="p">,</span>
+      <span class="nx">root</span><span class="p">:</span> <span class="dl">"</span><span class="s2">56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421</span><span class="dl">"</span><span class="p">,</span>
+      <span class="nx">storage</span><span class="p">:</span> <span class="p">{}</span>
+    <span class="p">}</span>
+  <span class="p">},</span>
+  <span class="nx">root</span><span class="p">:</span> <span class="dl">"</span><span class="s2">19f4ed94e188dd9c7eb04226bd240fa6b449401a6c656d6d2816a87ccaf206f1</span><span class="dl">"</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="debug_gcstats">debug_gcStats</h3>
+
+<p>Returns GC statistics.</p>
+
+<p>See https://golang.org/pkg/runtime/debug/#GCStats for information about
+the fields of the returned object.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">debug.gcStats()</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "debug_gcStats", "params": []}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="debug_getblockrlp">debug_getBlockRlp</h3>
+
+<p>Retrieves and returns the RLP encoded block by number.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Go</td>
+      <td><code class="language-plaintext highlighter-rouge">debug.GetBlockRlp(number uint64) (string, error)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">debug.getBlockRlp(number, [options])</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "debug_getBlockRlp", "params": [number]}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>References: <a href="https://github.com/ethereum/wiki/wiki/RLP">RLP</a></p>
+
+<h3 id="debug_gotrace">debug_goTrace</h3>
+
+<p>Turns on Go runtime tracing for the given duration and writes
+trace data to disk.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">debug.goTrace(file, seconds)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "debug_goTrace", "params": [string, number]}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="debug_memstats">debug_memStats</h3>
+
+<p>Returns detailed runtime memory statistics.</p>
+
+<p>See https://golang.org/pkg/runtime/#MemStats for information about
+the fields of the returned object.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">debug.memStats()</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "debug_memStats", "params": []}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="debug_seedhash">debug_seedHash</h3>
+
+<p>Fetches and retrieves the seed hash of the block by number</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Go</td>
+      <td><code class="language-plaintext highlighter-rouge">debug.SeedHash(number uint64) (string, error)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">debug.seedHash(number, [options])</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "debug_seedHash", "params": [number]}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="debug_sethead">debug_setHead</h3>
+
+<p>Sets the current head of the local chain by block number. <strong>Note</strong>, this is a
+destructive action and may severely damage your chain. Use with <em>extreme</em> caution.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Go</td>
+      <td><code class="language-plaintext highlighter-rouge">debug.SetHead(number uint64)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">debug.setHead(number)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "debug_setHead", "params": [number]}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>References:
+<a href="https://eth.wiki/en/concepts/ethash/ethash">Ethash</a></p>
+
+<h3 id="debug_setblockprofilerate">debug_setBlockProfileRate</h3>
+
+<p>Sets the rate (in samples/sec) of goroutine block profile
+data collection. A non-zero rate enables block profiling,
+setting it to zero stops the profile. Collected profile data
+can be written using <code class="language-plaintext highlighter-rouge">debug_writeBlockProfile</code>.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">debug.setBlockProfileRate(rate)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "debug_setBlockProfileRate", "params": [number]}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="debug_stacks">debug_stacks</h3>
+
+<p>Returns a printed representation of the stacks of all goroutines.
+Note that the web3 wrapper for this method takes care of the printing
+and does not return the string.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">debug.stacks()</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "debug_stacks", "params": []}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="debug_startcpuprofile">debug_startCPUProfile</h3>
+
+<p>Turns on CPU profiling indefinitely, writing to the given file.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">debug.startCPUProfile(file)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "debug_startCPUProfile", "params": [string]}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="debug_startgotrace">debug_startGoTrace</h3>
+
+<p>Starts writing a Go runtime trace to the given file.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">debug.startGoTrace(file)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "debug_startGoTrace", "params": [string]}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="debug_stopcpuprofile">debug_stopCPUProfile</h3>
+
+<p>Stops an ongoing CPU profile.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">debug.stopCPUProfile()</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "debug_stopCPUProfile", "params": []}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="debug_stopgotrace">debug_stopGoTrace</h3>
+
+<p>Stops writing the Go runtime trace.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">debug.startGoTrace(file)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "debug_stopGoTrace", "params": []}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="debug_traceblock">debug_traceBlock</h3>
+
+<p>The <code class="language-plaintext highlighter-rouge">traceBlock</code> method will return a full stack trace of all invoked opcodes of all transaction
+that were included in this block. <strong>Note</strong>, the parent of this block must be present or it will
+fail.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Go</td>
+      <td><code class="language-plaintext highlighter-rouge">debug.TraceBlock(blockRlp []byte, config. *vm.Config) BlockTraceResult</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">debug.traceBlock(tblockRlp, [options])</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "debug_traceBlock", "params": [blockRlp, {}]}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>References:
+<a href="https://github.com/ethereum/wiki/wiki/RLP">RLP</a></p>
+
+<h4 id="example-1">Example</h4>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&gt;</span> <span class="nx">debug</span><span class="p">.</span><span class="nx">traceBlock</span><span class="p">(</span><span class="dl">"</span><span class="s2">0xblock_rlp</span><span class="dl">"</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="nl">gas</span><span class="p">:</span> <span class="mi">85301</span><span class="p">,</span>
+  <span class="nx">returnValue</span><span class="p">:</span> <span class="dl">""</span><span class="p">,</span>
+  <span class="nx">structLogs</span><span class="p">:</span> <span class="p">[{</span>
+      <span class="na">depth</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+      <span class="na">error</span><span class="p">:</span> <span class="dl">""</span><span class="p">,</span>
+      <span class="na">gas</span><span class="p">:</span> <span class="mi">162106</span><span class="p">,</span>
+      <span class="na">gasCost</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+      <span class="na">memory</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span>
+      <span class="na">op</span><span class="p">:</span> <span class="dl">"</span><span class="s2">PUSH1</span><span class="dl">"</span><span class="p">,</span>
+      <span class="na">pc</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+      <span class="na">stack</span><span class="p">:</span> <span class="p">[],</span>
+      <span class="na">storage</span><span class="p">:</span> <span class="p">{}</span>
+  <span class="p">},</span>
+    <span class="cm">/* snip */</span>
+  <span class="p">{</span>
+      <span class="na">depth</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+      <span class="na">error</span><span class="p">:</span> <span class="dl">""</span><span class="p">,</span>
+      <span class="na">gas</span><span class="p">:</span> <span class="mi">100000</span><span class="p">,</span>
+      <span class="na">gasCost</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+      <span class="na">memory</span><span class="p">:</span> <span class="p">[</span><span class="dl">"</span><span class="s2">0000000000000000000000000000000000000000000000000000000000000006</span><span class="dl">"</span><span class="p">,</span> <span class="dl">"</span><span class="s2">0000000000000000000000000000000000000000000000000000000000000000</span><span class="dl">"</span><span class="p">,</span> <span class="dl">"</span><span class="s2">0000000000000000000000000000000000000000000000000000000000000060</span><span class="dl">"</span><span class="p">],</span>
+      <span class="na">op</span><span class="p">:</span> <span class="dl">"</span><span class="s2">STOP</span><span class="dl">"</span><span class="p">,</span>
+      <span class="na">pc</span><span class="p">:</span> <span class="mi">120</span><span class="p">,</span>
+      <span class="na">stack</span><span class="p">:</span> <span class="p">[</span><span class="dl">"</span><span class="s2">00000000000000000000000000000000000000000000000000000000d67cbec9</span><span class="dl">"</span><span class="p">],</span>
+      <span class="na">storage</span><span class="p">:</span> <span class="p">{</span>
+        <span class="mi">0000000000000000000000000000000000000000000000000000000000000004</span><span class="p">:</span> <span class="dl">"</span><span class="s2">8241fa522772837f0d05511f20caa6da1d5a3209000000000000000400000001</span><span class="dl">"</span><span class="p">,</span>
+        <span class="mi">0000000000000000000000000000000000000000000000000000000000000006</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0000000000000000000000000000000000000000000000000000000000000001</span><span class="dl">"</span><span class="p">,</span>
+        <span class="na">f652222313e28459528d920b65115c16c04f3efc82aaedc97be59f3f377c0d3f</span><span class="p">:</span> <span class="dl">"</span><span class="s2">00000000000000000000000002e816afc1b5c0f39852131959d946eb3b07b5ad</span><span class="dl">"</span>
+      <span class="p">}</span>
+  <span class="p">}]</span>
+</code></pre></div></div>
+
+<h3 id="debug_traceblockbynumber">debug_traceBlockByNumber</h3>
+
+<p>Similar to <a href="https://geth.ethereum.org/docs/rpc/ns-debug#debug_traceblock">debug_traceBlock</a>, <code class="language-plaintext highlighter-rouge">traceBlockByNumber</code> accepts a block number and will replay the
+block that is already present in the database.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Go</td>
+      <td><code class="language-plaintext highlighter-rouge">debug.TraceBlockByNumber(number uint64, config. *vm.Config) BlockTraceResult</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">debug.traceBlockByNumber(number, [options])</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "debug_traceBlockByNumber", "params": [number, {}]}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>References:
+<a href="https://github.com/ethereum/wiki/wiki/RLP">RLP</a></p>
+
+<h3 id="debug_traceblockbyhash">debug_traceBlockByHash</h3>
+
+<p>Similar to <a href="https://geth.ethereum.org/docs/rpc/ns-debug#debug_traceblock">debug_traceBlock</a>, <code class="language-plaintext highlighter-rouge">traceBlockByHash</code> accepts a block hash and will replay the
+block that is already present in the database.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Go</td>
+      <td><code class="language-plaintext highlighter-rouge">debug.TraceBlockByHash(hash common.Hash, config. *vm.Config) BlockTraceResult</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">debug.traceBlockByHash(hash, [options])</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "debug_traceBlockByHash", "params": [hash {}]}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>References:
+<a href="https://github.com/ethereum/wiki/wiki/RLP">RLP</a></p>
+
+<h3 id="debug_traceblockfromfile">debug_traceBlockFromFile</h3>
+
+<p>Similar to <a href="https://geth.ethereum.org/docs/rpc/ns-debug#debug_traceblock">debug_traceBlock</a>, <code class="language-plaintext highlighter-rouge">traceBlockFromFile</code> accepts a file containing the RLP of the block.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Go</td>
+      <td><code class="language-plaintext highlighter-rouge">debug.TraceBlockFromFile(fileName string, config. *vm.Config) BlockTraceResult</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">debug.traceBlockFromFile(fileName, [options])</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "debug_traceBlockFromFile", "params": [fileName, {}]}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>References:
+<a href="https://github.com/ethereum/wiki/wiki/RLP">RLP</a></p>
+
+<h3 id="debug_standardtraceblocktofile">debug_standardTraceBlockToFile</h3>
+
+<p>When JS-based tracing (see below) was first implemented, the intended usecase was to enable long-running tracers that could stream results back via a subscription channel.
+This method works a bit differently. (For full details, see <a href="https://github.com/ethereum/go-ethereum/pull/17914">PR</a>)</p>
+
+<ul>
+  <li>It streams output to disk during the execution, to not blow up the memory usage on the node</li>
+  <li>It uses <code class="language-plaintext highlighter-rouge">jsonl</code> as output format (to allow streaming)</li>
+  <li>Uses a cross-client standardized output, so called ‘standard json’
+    <ul>
+      <li>Uses <code class="language-plaintext highlighter-rouge">op</code> for string-representation of opcode, instead of <code class="language-plaintext highlighter-rouge">op</code>/<code class="language-plaintext highlighter-rouge">opName</code> for numeric/string, and other simlar small differences.</li>
+      <li>has <code class="language-plaintext highlighter-rouge">refund</code></li>
+      <li>Represents memory as a contiguous chunk of data, as opposed to a list of <code class="language-plaintext highlighter-rouge">32</code>-byte segments like <code class="language-plaintext highlighter-rouge">debug_traceTransaction</code></li>
+    </ul>
+  </li>
+</ul>
+
+<p>This means that this method is only ‘useful’ for callers who control the node – at least sufficiently to be able to read the artefacts from the filesystem after the fact.</p>
+
+<p>The method can be used to dump a certain transaction out of a given block:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&gt; debug.standardTraceBlockToFile("0x0bbe9f1484668a2bf159c63f0cf556ed8c8282f99e3ffdb03ad2175a863bca63", {txHash:"0x4049f61ffbb0747bb88dc1c85dd6686ebf225a3c10c282c45a8e0c644739f7e9", disableMemory:true})
+["/tmp/block_0x0bbe9f14-14-0x4049f61f-099048234"]
+</code></pre></div></div>
+<p>Or all txs from a block:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&gt; debug.standardTraceBlockToFile("0x0bbe9f1484668a2bf159c63f0cf556ed8c8282f99e3ffdb03ad2175a863bca63", {disableMemory:true})
+["/tmp/block_0x0bbe9f14-0-0xb4502ea7-409046657", "/tmp/block_0x0bbe9f14-1-0xe839be8f-954614764", "/tmp/block_0x0bbe9f14-2-0xc6e2052f-542255195", "/tmp/block_0x0bbe9f14-3-0x01b7f3fe-209673214", "/tmp/block_0x0bbe9f14-4-0x0f290422-320999749", "/tmp/block_0x0bbe9f14-5-0x2dc0fb80-844117472", "/tmp/block_0x0bbe9f14-6-0x35542da1-256306111", "/tmp/block_0x0bbe9f14-7-0x3e199a08-086370834", "/tmp/block_0x0bbe9f14-8-0x87778b88-194603593", "/tmp/block_0x0bbe9f14-9-0xbcb081ba-629580052", "/tmp/block_0x0bbe9f14-10-0xc254381a-578605923", "/tmp/block_0x0bbe9f14-11-0xcc434d58-405931366", "/tmp/block_0x0bbe9f14-12-0xce61967d-874423181", "/tmp/block_0x0bbe9f14-13-0x05a20b35-267153288", "/tmp/block_0x0bbe9f14-14-0x4049f61f-606653767", "/tmp/block_0x0bbe9f14-15-0x46d473d2-614457338", "/tmp/block_0x0bbe9f14-16-0x35cf5500-411906321", "/tmp/block_0x0bbe9f14-17-0x79222961-278569788", "/tmp/block_0x0bbe9f14-18-0xad84e7b1-095032683", "/tmp/block_0x0bbe9f14-19-0x4bd48260-019097038", "/tmp/block_0x0bbe9f14-20-0x1517411d-292624085", "/tmp/block_0x0bbe9f14-21-0x6857e350-971385904", "/tmp/block_0x0bbe9f14-22-0xbe3ae2ca-236639695"]
+
+</code></pre></div></div>
+<p>Files are created in a temp-location, with the naming standard <code class="language-plaintext highlighter-rouge">block_&lt;blockhash:4&gt;-&lt;txindex&gt;-&lt;txhash:4&gt;-&lt;random suffix&gt;</code>. Each opcode immediately streams to file, with no in-geth buffering aside from whatever buffering the os normally does.</p>
+
+<p>On the server side, it also adds some more info when regenerating historical state, namely, the reexec-number if <code class="language-plaintext highlighter-rouge">required historical state is not avaiable</code> is encountered, so a user can experiment with increasing that setting. It also prints out the remaining block until it reaches target:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>INFO [10-15|13:48:25.263] Regenerating historical state            block=2385959 target=2386012 remaining=53   elapsed=3m30.990537767s
+INFO [10-15|13:48:33.342] Regenerating historical state            block=2386012 target=2386012 remaining=0    elapsed=3m39.070073163s
+INFO [10-15|13:48:33.343] Historical state regenerated             block=2386012 elapsed=3m39.070454362s nodes=10.03mB preimages=652.08kB
+INFO [10-15|13:48:33.352] Wrote trace                              file=/tmp/block_0x14490c57-0-0xfbbd6d91-715824834
+INFO [10-15|13:48:33.352] Wrote trace                              file=/tmp/block_0x14490c57-1-0x71076194-187462969
+INFO [10-15|13:48:34.421] Wrote trace file=/tmp/block_0x14490c57-2-0x3f4263fe-056924484
+</code></pre></div></div>
+
+<p>The <code class="language-plaintext highlighter-rouge">options</code> is as follows:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>type StdTraceConfig struct {
+  *vm.LogConfig
+  Reexec *uint64
+  TxHash *common.Hash
+}
+</code></pre></div></div>
+
+<h3 id="debug_standardtracebadblocktofile">debug_standardTraceBadBlockToFile</h3>
+
+<p>This method is similar to <code class="language-plaintext highlighter-rouge">debug_standardTraceBlockToFile</code>, but can be used to obtain info about a block which has been <em>rejected</em> as invalid (for some reason).</p>
+
+<h3 id="debug_tracetransaction">debug_traceTransaction</h3>
+
+<p><strong>OBS</strong> In most scenarios, <code class="language-plaintext highlighter-rouge">debug.standardTraceBlockToFile</code> is better suited for tracing!</p>
+
+<p>The <code class="language-plaintext highlighter-rouge">traceTransaction</code> debugging method will attempt to run the transaction in the exact same manner
+as it was executed on the network. It will replay any transaction that may have been executed prior
+to this one before it will finally attempt to execute the transaction that corresponds to the given
+hash.</p>
+
+<p>In addition to the hash of the transaction you may give it a secondary <em>optional</em> argument, which
+specifies the options for this specific call. The possible options are:</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">disableStorage</code>: <code class="language-plaintext highlighter-rouge">BOOL</code>. Setting this to true will disable storage capture (default = false).</li>
+  <li><code class="language-plaintext highlighter-rouge">disableMemory</code>: <code class="language-plaintext highlighter-rouge">BOOL</code>. Setting this to true will disable memory capture (default = false).</li>
+  <li><code class="language-plaintext highlighter-rouge">disableStack</code>: <code class="language-plaintext highlighter-rouge">BOOL</code>. Setting this to true will disable stack capture (default = false).</li>
+  <li><code class="language-plaintext highlighter-rouge">tracer</code>: <code class="language-plaintext highlighter-rouge">STRING</code>. Setting this will enable JavaScript-based transaction tracing, described below. If set, the previous four arguments will be ignored.</li>
+  <li><code class="language-plaintext highlighter-rouge">timeout</code>: <code class="language-plaintext highlighter-rouge">STRING</code>. Overrides the default timeout of 5 seconds for JavaScript-based tracing calls. Valid values are described <a href="https://golang.org/pkg/time/#ParseDuration">here</a>.</li>
+</ul>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Go</td>
+      <td><code class="language-plaintext highlighter-rouge">debug.TraceTransaction(txHash common.Hash, logger *vm.LogConfig) (*ExecutionResurt, error)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">debug.traceTransaction(txHash, [options])</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "debug_traceTransaction", "params": [txHash, {}]}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="example-2">Example</h4>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&gt;</span> <span class="nx">debug</span><span class="p">.</span><span class="nx">traceTransaction</span><span class="p">(</span><span class="dl">"</span><span class="s2">0x2059dd53ecac9827faad14d364f9e04b1d5fe5b506e3acc886eff7a6f88a696a</span><span class="dl">"</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="nl">gas</span><span class="p">:</span> <span class="mi">85301</span><span class="p">,</span>
+  <span class="nx">returnValue</span><span class="p">:</span> <span class="dl">""</span><span class="p">,</span>
+  <span class="nx">structLogs</span><span class="p">:</span> <span class="p">[{</span>
+      <span class="na">depth</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+      <span class="na">error</span><span class="p">:</span> <span class="dl">""</span><span class="p">,</span>
+      <span class="na">gas</span><span class="p">:</span> <span class="mi">162106</span><span class="p">,</span>
+      <span class="na">gasCost</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+      <span class="na">memory</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span>
+      <span class="na">op</span><span class="p">:</span> <span class="dl">"</span><span class="s2">PUSH1</span><span class="dl">"</span><span class="p">,</span>
+      <span class="na">pc</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+      <span class="na">stack</span><span class="p">:</span> <span class="p">[],</span>
+      <span class="na">storage</span><span class="p">:</span> <span class="p">{}</span>
+  <span class="p">},</span>
+    <span class="cm">/* snip */</span>
+  <span class="p">{</span>
+      <span class="na">depth</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+      <span class="na">error</span><span class="p">:</span> <span class="dl">""</span><span class="p">,</span>
+      <span class="na">gas</span><span class="p">:</span> <span class="mi">100000</span><span class="p">,</span>
+      <span class="na">gasCost</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+      <span class="na">memory</span><span class="p">:</span> <span class="p">[</span><span class="dl">"</span><span class="s2">0000000000000000000000000000000000000000000000000000000000000006</span><span class="dl">"</span><span class="p">,</span> <span class="dl">"</span><span class="s2">0000000000000000000000000000000000000000000000000000000000000000</span><span class="dl">"</span><span class="p">,</span> <span class="dl">"</span><span class="s2">0000000000000000000000000000000000000000000000000000000000000060</span><span class="dl">"</span><span class="p">],</span>
+      <span class="na">op</span><span class="p">:</span> <span class="dl">"</span><span class="s2">STOP</span><span class="dl">"</span><span class="p">,</span>
+      <span class="na">pc</span><span class="p">:</span> <span class="mi">120</span><span class="p">,</span>
+      <span class="na">stack</span><span class="p">:</span> <span class="p">[</span><span class="dl">"</span><span class="s2">00000000000000000000000000000000000000000000000000000000d67cbec9</span><span class="dl">"</span><span class="p">],</span>
+      <span class="na">storage</span><span class="p">:</span> <span class="p">{</span>
+        <span class="mi">0000000000000000000000000000000000000000000000000000000000000004</span><span class="p">:</span> <span class="dl">"</span><span class="s2">8241fa522772837f0d05511f20caa6da1d5a3209000000000000000400000001</span><span class="dl">"</span><span class="p">,</span>
+        <span class="mi">0000000000000000000000000000000000000000000000000000000000000006</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0000000000000000000000000000000000000000000000000000000000000001</span><span class="dl">"</span><span class="p">,</span>
+        <span class="na">f652222313e28459528d920b65115c16c04f3efc82aaedc97be59f3f377c0d3f</span><span class="p">:</span> <span class="dl">"</span><span class="s2">00000000000000000000000002e816afc1b5c0f39852131959d946eb3b07b5ad</span><span class="dl">"</span>
+      <span class="p">}</span>
+  <span class="p">}]</span>
+</code></pre></div></div>
+
+<h4 id="javascript-based-tracing">JavaScript-based tracing</h4>
+
+<p>Specifying the <code class="language-plaintext highlighter-rouge">tracer</code> option in the second argument enables JavaScript-based tracing. In this mode, <code class="language-plaintext highlighter-rouge">tracer</code> is interpreted as a JavaScript expression that is expected to evaluate to an object with (at least) three methods, named <code class="language-plaintext highlighter-rouge">step</code>, <code class="language-plaintext highlighter-rouge">result</code>, and <code class="language-plaintext highlighter-rouge">fault</code>.</p>
+
+<p><code class="language-plaintext highlighter-rouge">step</code>is a function that takes two arguments, log and db, and is called for each step of the EVM, or when an error occurs, as the specified transaction is traced.</p>
+
+<p><code class="language-plaintext highlighter-rouge">log</code> has the following fields:</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">op</code>: Object, an OpCode object representing the current opcode</li>
+  <li><code class="language-plaintext highlighter-rouge">stack</code>: array[big.Int], the EVM execution stack</li>
+  <li><code class="language-plaintext highlighter-rouge">memory</code>: Object, a structure representing the contract’s memory space</li>
+  <li><code class="language-plaintext highlighter-rouge">contract</code>: Object, an object representing the account executing the current operation</li>
+</ul>
+
+<p>and the following methods:</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">getPC()</code> - returns a Number with the current program counter</li>
+  <li><code class="language-plaintext highlighter-rouge">getGas()</code> - returns a Number with the amount of gas remaining</li>
+  <li><code class="language-plaintext highlighter-rouge">getCost()</code> - returns the cost of the opcode as a Number</li>
+  <li><code class="language-plaintext highlighter-rouge">getDepth()</code> - returns the execution depth as a Number</li>
+  <li><code class="language-plaintext highlighter-rouge">getRefund()</code> - returns the amount to be refunded as a Number</li>
+  <li><code class="language-plaintext highlighter-rouge">getError()</code> - returns information about the error if one occured, otherwise returns <code class="language-plaintext highlighter-rouge">undefined</code></li>
+</ul>
+
+<p>If error is non-empty, all other fields should be ignored.</p>
+
+<p>For efficiency, the same <code class="language-plaintext highlighter-rouge">log</code> object is reused on each execution step, updated with current values; make sure to copy values you want to preserve beyond the current call. For instance, this step function will not work:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>function(log) {
+  this.logs.append(log);
+}
+</code></pre></div></div>
+
+<p>But this step function will:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>function(log) {
+  this.logs.append({gas: log.getGas(), pc: log.getPC(), ...});
+}
+</code></pre></div></div>
+
+<p><code class="language-plaintext highlighter-rouge">log.op</code> has the following methods:</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">isPush()</code> - returns true iff the opcode is a PUSHn</li>
+  <li><code class="language-plaintext highlighter-rouge">toString()</code> - returns the string representation of the opcode</li>
+  <li><code class="language-plaintext highlighter-rouge">toNumber()</code> - returns the opcode’s number</li>
+</ul>
+
+<p><code class="language-plaintext highlighter-rouge">log.memory</code> has the following methods:</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">slice(start, stop)</code> - returns the specified segment of memory as a byte slice</li>
+  <li><code class="language-plaintext highlighter-rouge">getUint(offset)</code> - returns the 32 bytes at the given offset</li>
+</ul>
+
+<p><code class="language-plaintext highlighter-rouge">log.stack</code> has the following methods:</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">peek(idx)</code> - returns the idx-th element from the top of the stack (0 is the topmost element) as a big.Int</li>
+  <li><code class="language-plaintext highlighter-rouge">length()</code> - returns the number of elements in the stack</li>
+</ul>
+
+<p><code class="language-plaintext highlighter-rouge">log.contract</code> has the following methods:</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">getCaller()</code> - returns the address of the caller</li>
+  <li><code class="language-plaintext highlighter-rouge">getAddress()</code> - returns the address of the current contract</li>
+  <li><code class="language-plaintext highlighter-rouge">getValue()</code> - returns the amount of value sent from caller to contract as a big.Int</li>
+  <li><code class="language-plaintext highlighter-rouge">getInput()</code> - returns the input data passed to the contract</li>
+</ul>
+
+<p><code class="language-plaintext highlighter-rouge">db</code> has the following methods:</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">getBalance(address)</code> - returns a <code class="language-plaintext highlighter-rouge">big.Int</code> with the specified account’s balance</li>
+  <li><code class="language-plaintext highlighter-rouge">getNonce(address)</code> - returns a Number with the specified account’s nonce</li>
+  <li><code class="language-plaintext highlighter-rouge">getCode(address)</code> - returns a byte slice with the code for the specified account</li>
+  <li><code class="language-plaintext highlighter-rouge">getState(address, hash)</code> - returns the state value for the specified account and the specified hash</li>
+  <li><code class="language-plaintext highlighter-rouge">exists(address)</code> - returns true if the specified address exists</li>
+</ul>
+
+<p>If the step function throws an exception or executes an illegal operation at any point, it will not be called on any further VM steps, and the error will be returned to the caller.</p>
+
+<p>The second function, <code class="language-plaintext highlighter-rouge">result</code>, takes two arguments <code class="language-plaintext highlighter-rouge">ctx</code> and <code class="language-plaintext highlighter-rouge">db</code>, and is expected to return a JSON-serializable value to return to the RPC caller.</p>
+
+<p><code class="language-plaintext highlighter-rouge">ctx</code> is the context in which the transaction is executing and has the following fields:</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">type</code> - String, one of the two values <code class="language-plaintext highlighter-rouge">CALL</code> and <code class="language-plaintext highlighter-rouge">CREATE</code></li>
+  <li><code class="language-plaintext highlighter-rouge">from</code> - Address, sender of the transaction</li>
+  <li><code class="language-plaintext highlighter-rouge">to</code> - Address, target of the transaction</li>
+  <li><code class="language-plaintext highlighter-rouge">input</code> - Buffer, input transaction data</li>
+  <li><code class="language-plaintext highlighter-rouge">gas</code> - Number, gas budget of the transaction</li>
+  <li><code class="language-plaintext highlighter-rouge">value</code> - big.Int, amount to be transferred in wei</li>
+  <li><code class="language-plaintext highlighter-rouge">block</code> - Number, block number</li>
+  <li><code class="language-plaintext highlighter-rouge">output</code> - Buffer, value returned from EVM</li>
+  <li><code class="language-plaintext highlighter-rouge">gasUsed</code> - Number, amount of gas used in executing the transaction (excludes txdata costs)</li>
+  <li><code class="language-plaintext highlighter-rouge">time</code> - String, execution runtime</li>
+</ul>
+
+<p>The third function, <code class="language-plaintext highlighter-rouge">fault</code>, takes two arguments, <code class="language-plaintext highlighter-rouge">log</code> and <code class="language-plaintext highlighter-rouge">db</code>, just like <code class="language-plaintext highlighter-rouge">step</code> and is invoked when an error happens during the execution of an opcode which wasn’t reported in <code class="language-plaintext highlighter-rouge">step</code>. The method <code class="language-plaintext highlighter-rouge">log.getError()</code> has information about the error.</p>
+
+<p>Note that several values are Golang big.Int objects, not JavaScript numbers or JS bigints. As such, they have the same interface as described in the godocs. Their default serialization to JSON is as a Javascript number; to serialize large numbers accurately call <code class="language-plaintext highlighter-rouge">.String()</code> on them. For convenience, <code class="language-plaintext highlighter-rouge">big.NewInt(x)</code> is provided, and will convert a uint to a Go BigInt.</p>
+
+<p>Usage example, returns the top element of the stack at each CALL opcode only:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>debug.traceTransaction(txhash, {tracer: '{data: [], fault: function(log) {}, step: function(log) { if(log.op.toString() == "CALL") this.data.push(log.stack.peek(0)); }, result: function() { return this.data; }}'});
+</code></pre></div></div>
+
+<h3 id="debug_tracecall">debug_traceCall</h3>
+
+<p>The <code class="language-plaintext highlighter-rouge">debug_traceCall</code> method lets you run an <code class="language-plaintext highlighter-rouge">eth_call</code> within the context of the given block execution using the final state of parent block as the base. The block can be specified either by hash or by number. It takes the same input object as a <code class="language-plaintext highlighter-rouge">eth_call</code>.
+It returns the same output as <code class="language-plaintext highlighter-rouge">debug_traceTransaction</code>. A tracer can be specified as a third argument, similar to <code class="language-plaintext highlighter-rouge">debug_traceTransaction</code>.</p>
+
+<p><code class="language-plaintext highlighter-rouge">Object</code> - The transaction call object</p>
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">from</code>: <code class="language-plaintext highlighter-rouge">DATA</code>, 20 Bytes - (optional) The address the transaction is sent from.</li>
+  <li><code class="language-plaintext highlighter-rouge">to</code>: <code class="language-plaintext highlighter-rouge">DATA</code>, 20 Bytes - The address the transaction is directed to.</li>
+  <li><code class="language-plaintext highlighter-rouge">gas</code>: <code class="language-plaintext highlighter-rouge">QUANTITY</code> - (optional) Integer of the gas provided for the transaction execution. eth_call consumes zero gas, but this parameter may be needed by some executions.</li>
+  <li><code class="language-plaintext highlighter-rouge">gasPrice</code>: <code class="language-plaintext highlighter-rouge">QUANTITY</code> - (optional) Integer of the gasPrice used for each paid gas</li>
+  <li><code class="language-plaintext highlighter-rouge">value</code>: <code class="language-plaintext highlighter-rouge">QUANTITY</code> - (optional) Integer of the value sent with this transaction</li>
+  <li><code class="language-plaintext highlighter-rouge">data</code>: <code class="language-plaintext highlighter-rouge">DATA</code> - (optional) Hash of the method signature and encoded parameters. For details see Ethereum Contract ABI in the Solidity documentation</li>
+</ul>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center">Go</td>
+      <td><code class="language-plaintext highlighter-rouge">debug.TraceCall(args ethapi.CallArgs, blockNrOrHash rpc.BlockNumberOrHash, config *TraceConfig) (*ExecutionResult, error)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: center">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">debug.traceCall(object, blockNrOrHash, [options])</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: center">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "debug_traceCall", "params": [object, blockNrOrHash, {}]}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="example-3">Example</h4>
+
+<p>No specific call options:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&gt; debug.traceCall(null, "0x0")
+{
+  failed: false,
+  gas: 53000,
+  returnValue: "",
+  structLogs: []
+}
+</code></pre></div></div>
+<p>Tracing a call with a destination and specific sender, disabling the storage and memory output (less data returned over RPC)</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>debug.traceCall({
+	from: "0xdeadbeef292929291929394949595949339292929, 
+	to:"0xde929f939d939d393f939393f93939f393929023", 
+	gas: "0x7a120", 
+	data: "0xf00d4b5d00000000000000000000000001291230982139282304923482304912923823920000000000000000000000001293123098123928310239129839291010293810"
+	}, 
+	"latest", {disableStorage:true, disableMemory: true})
+</code></pre></div></div>
+<p>Curl example:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&gt; curl -H "Content-Type: application/json" -X POST  localhost:8545 --data '{"jsonrpc":"2.0","method":"debug_traceCall","params":[null, "pending"],"id":1}'
+{"jsonrpc":"2.0","id":1,"result":{"gas":53000,"failed":false,"returnValue":"","structLogs":[]}}
+</code></pre></div></div>
+
+<h3 id="debug_verbosity">debug_verbosity</h3>
+
+<p>Sets the logging verbosity ceiling. Log messages with level
+up to and including the given level will be printed.</p>
+
+<p>The verbosity of individual packages and source files
+can be raised using <code class="language-plaintext highlighter-rouge">debug_vmodule</code>.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">debug.verbosity(level)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "debug_vmodule", "params": [number]}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="debug_vmodule">debug_vmodule</h3>
+
+<p>Sets the logging verbosity pattern.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">debug.vmodule(string)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "debug_vmodule", "params": [string]}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="examples">Examples</h4>
+
+<p>If you want to see messages from a particular Go package (directory)
+and all subdirectories, use:</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&gt;</span> <span class="nx">debug</span><span class="p">.</span><span class="nx">vmodule</span><span class="p">(</span><span class="dl">"</span><span class="s2">eth/*=6</span><span class="dl">"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>If you want to restrict messages to a particular package (e.g. p2p)
+but exclude subdirectories, use:</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&gt;</span> <span class="nx">debug</span><span class="p">.</span><span class="nx">vmodule</span><span class="p">(</span><span class="dl">"</span><span class="s2">p2p=6</span><span class="dl">"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>If you want to see log messages from a particular source file, use</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&gt;</span> <span class="nx">debug</span><span class="p">.</span><span class="nx">vmodule</span><span class="p">(</span><span class="dl">"</span><span class="s2">server.go=6</span><span class="dl">"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>You can compose these basic patterns. If you want to see all
+output from peer.go in a package below eth (eth/peer.go,
+eth/downloader/peer.go) as well as output from package p2p
+at level &lt;= 5, use:</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nx">debug</span><span class="p">.</span><span class="nx">vmodule</span><span class="p">(</span><span class="dl">"</span><span class="s2">eth/*/peer.go=6,p2p=5</span><span class="dl">"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h3 id="debug_writeblockprofile">debug_writeBlockProfile</h3>
+
+<p>Writes a goroutine blocking profile to the given file.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">debug.writeBlockProfile(file)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "debug_writeBlockProfile", "params": [string]}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="debug_writememprofile">debug_writeMemProfile</h3>
+
+<p>Writes an allocation profile to the given file.
+Note that the profiling rate cannot be set through the API,
+it must be set on the command line using the <code class="language-plaintext highlighter-rouge">--pprof.memprofilerate</code>
+flag.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">debug.writeMemProfile(file string)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "debug_writeBlockProfile", "params": [string]}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+    </div>

@@ -1,0 +1,275 @@
+  <div class="col-md-9" id="content">
+
+      <p>The <code class="language-plaintext highlighter-rouge">txpool</code> API gives you access to several non-standard RPC methods to inspect the contents of the
+transaction pool containing all the currently pending transactions as well as the ones queued for
+future processing.</p>
+
+<ul id="markdown-toc">
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-txpool#txpool_content" id="markdown-toc-txpool_content">txpool_content</a>    <ul>
+      <li><a href="https://geth.ethereum.org/docs/rpc/ns-txpool#example" id="markdown-toc-example">Example</a></li>
+    </ul>
+  </li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-txpool#txpool_inspect" id="markdown-toc-txpool_inspect">txpool_inspect</a>    <ul>
+      <li><a href="https://geth.ethereum.org/docs/rpc/ns-txpool#example-1" id="markdown-toc-example-1">Example</a></li>
+    </ul>
+  </li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-txpool#txpool_status" id="markdown-toc-txpool_status">txpool_status</a>    <ul>
+      <li><a href="https://geth.ethereum.org/docs/rpc/ns-txpool#example-2" id="markdown-toc-example-2">Example</a></li>
+    </ul>
+  </li>
+</ul>
+
+<h3 id="txpool_content">txpool_content</h3>
+
+<p>The <code class="language-plaintext highlighter-rouge">content</code> inspection property can be queried to list the exact details of all the transactions
+currently pending for inclusion in the next block(s), as well as the ones that are being scheduled
+for future execution only.</p>
+
+<p>The result is an object with two fields <code class="language-plaintext highlighter-rouge">pending</code> and <code class="language-plaintext highlighter-rouge">queued</code>. Each of these fields are associative
+arrays, in which each entry maps an origin-address to a batch of scheduled transactions. These batches
+themselves are maps associating nonces with actual transactions.</p>
+
+<p>Please note, there may be multiple transactions associated with the same account and nonce. This can
+happen if the user broadcast mutliple ones with varying gas allowances (or even complerely different
+transactions).</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center">Go</td>
+      <td><code class="language-plaintext highlighter-rouge">txpool.Content() (map[string]map[string]map[string]*RPCTransaction)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: center">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">txpool.content</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: center">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "txpool_content"}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="example">Example</h4>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&gt;</span> <span class="nx">txpool</span><span class="p">.</span><span class="nx">content</span>
+<span class="p">{</span>
+  <span class="nl">pending</span><span class="p">:</span> <span class="p">{</span>
+    <span class="mh">0x0216d5032f356960cd3749c31ab34eeff21b3395</span><span class="p">:</span> <span class="p">{</span>
+      <span class="mi">806</span><span class="p">:</span> <span class="p">{</span>
+        <span class="na">blockHash</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x0000000000000000000000000000000000000000000000000000000000000000</span><span class="dl">"</span><span class="p">,</span>
+        <span class="na">blockNumber</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span>
+        <span class="na">from</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x0216d5032f356960cd3749c31ab34eeff21b3395</span><span class="dl">"</span><span class="p">,</span>
+        <span class="na">gas</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x5208</span><span class="dl">"</span><span class="p">,</span>
+        <span class="na">gasPrice</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0xba43b7400</span><span class="dl">"</span><span class="p">,</span>
+        <span class="na">hash</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0xaf953a2d01f55cfe080c0c94150a60105e8ac3d51153058a1f03dd239dd08586</span><span class="dl">"</span><span class="p">,</span>
+        <span class="na">input</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x</span><span class="dl">"</span><span class="p">,</span>
+        <span class="na">nonce</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x326</span><span class="dl">"</span><span class="p">,</span>
+        <span class="na">to</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x7f69a91a3cf4be60020fb58b893b7cbb65376db8</span><span class="dl">"</span><span class="p">,</span>
+        <span class="na">transactionIndex</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span>
+        <span class="na">value</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x19a99f0cf456000</span><span class="dl">"</span>
+      <span class="p">}</span>
+    <span class="p">},</span>
+    <span class="mh">0x24d407e5a0b506e1cb2fae163100b5de01f5193c</span><span class="p">:</span> <span class="p">{</span>
+      <span class="mi">34</span><span class="p">:</span> <span class="p">{</span>
+        <span class="na">blockHash</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x0000000000000000000000000000000000000000000000000000000000000000</span><span class="dl">"</span><span class="p">,</span>
+        <span class="na">blockNumber</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span>
+        <span class="na">from</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x24d407e5a0b506e1cb2fae163100b5de01f5193c</span><span class="dl">"</span><span class="p">,</span>
+        <span class="na">gas</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x44c72</span><span class="dl">"</span><span class="p">,</span>
+        <span class="na">gasPrice</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x4a817c800</span><span class="dl">"</span><span class="p">,</span>
+        <span class="na">hash</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0xb5b8b853af32226755a65ba0602f7ed0e8be2211516153b75e9ed640a7d359fe</span><span class="dl">"</span><span class="p">,</span>
+        <span class="na">input</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0xb61d27f600000000000000000000000024d407e5a0b506e1cb2fae163100b5de01f5193c00000000000000000000000000000000000000000000000053444835ec580000000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000</span><span class="dl">"</span><span class="p">,</span>
+        <span class="na">nonce</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x22</span><span class="dl">"</span><span class="p">,</span>
+        <span class="na">to</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x7320785200f74861b69c49e4ab32399a71b34f1a</span><span class="dl">"</span><span class="p">,</span>
+        <span class="na">transactionIndex</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span>
+        <span class="na">value</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x0</span><span class="dl">"</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">},</span>
+  <span class="nx">queued</span><span class="p">:</span> <span class="p">{</span>
+    <span class="mh">0x976a3fc5d6f7d259ebfb4cc2ae75115475e9867c</span><span class="p">:</span> <span class="p">{</span>
+      <span class="mi">3</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nl">blockHash</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x0000000000000000000000000000000000000000000000000000000000000000</span><span class="dl">"</span><span class="p">,</span>
+        <span class="nx">blockNumber</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span>
+        <span class="k">from</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x976a3fc5d6f7d259ebfb4cc2ae75115475e9867c</span><span class="dl">"</span><span class="p">,</span>
+        <span class="nx">gas</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x15f90</span><span class="dl">"</span><span class="p">,</span>
+        <span class="nx">gasPrice</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x4a817c800</span><span class="dl">"</span><span class="p">,</span>
+        <span class="nx">hash</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x57b30c59fc39a50e1cba90e3099286dfa5aaf60294a629240b5bbec6e2e66576</span><span class="dl">"</span><span class="p">,</span>
+        <span class="nx">input</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x</span><span class="dl">"</span><span class="p">,</span>
+        <span class="nx">nonce</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x3</span><span class="dl">"</span><span class="p">,</span>
+        <span class="nx">to</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x346fb27de7e7370008f5da379f74dd49f5f2f80f</span><span class="dl">"</span><span class="p">,</span>
+        <span class="nx">transactionIndex</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span>
+        <span class="nx">value</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x1f161421c8e0000</span><span class="dl">"</span>
+      <span class="p">}</span>
+    <span class="p">},</span>
+    <span class="mh">0x9b11bf0459b0c4b2f87f8cebca4cfc26f294b63a</span><span class="p">:</span> <span class="p">{</span>
+      <span class="mi">2</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nl">blockHash</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x0000000000000000000000000000000000000000000000000000000000000000</span><span class="dl">"</span><span class="p">,</span>
+        <span class="nx">blockNumber</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span>
+        <span class="k">from</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x9b11bf0459b0c4b2f87f8cebca4cfc26f294b63a</span><span class="dl">"</span><span class="p">,</span>
+        <span class="nx">gas</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x15f90</span><span class="dl">"</span><span class="p">,</span>
+        <span class="nx">gasPrice</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0xba43b7400</span><span class="dl">"</span><span class="p">,</span>
+        <span class="nx">hash</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x3a3c0698552eec2455ed3190eac3996feccc806970a4a056106deaf6ceb1e5e3</span><span class="dl">"</span><span class="p">,</span>
+        <span class="nx">input</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x</span><span class="dl">"</span><span class="p">,</span>
+        <span class="nx">nonce</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x2</span><span class="dl">"</span><span class="p">,</span>
+        <span class="nx">to</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x24a461f25ee6a318bdef7f33de634a67bb67ac9d</span><span class="dl">"</span><span class="p">,</span>
+        <span class="nx">transactionIndex</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span>
+        <span class="nx">value</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0xebec21ee1da40000</span><span class="dl">"</span>
+      <span class="p">},</span>
+      <span class="mi">6</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nl">blockHash</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x0000000000000000000000000000000000000000000000000000000000000000</span><span class="dl">"</span><span class="p">,</span>
+        <span class="nx">blockNumber</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span>
+        <span class="k">from</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x9b11bf0459b0c4b2f87f8cebca4cfc26f294b63a</span><span class="dl">"</span><span class="p">,</span>
+        <span class="nx">gas</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x15f90</span><span class="dl">"</span><span class="p">,</span>
+        <span class="nx">gasPrice</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x4a817c800</span><span class="dl">"</span><span class="p">,</span>
+        <span class="nx">hash</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0xbbcd1e45eae3b859203a04be7d6e1d7b03b222ec1d66dfcc8011dd39794b147e</span><span class="dl">"</span><span class="p">,</span>
+        <span class="nx">input</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x</span><span class="dl">"</span><span class="p">,</span>
+        <span class="nx">nonce</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x6</span><span class="dl">"</span><span class="p">,</span>
+        <span class="nx">to</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x6368f3f8c2b42435d6c136757382e4a59436a681</span><span class="dl">"</span><span class="p">,</span>
+        <span class="nx">transactionIndex</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span>
+        <span class="nx">value</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0xf9a951af55470000</span><span class="dl">"</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="txpool_inspect">txpool_inspect</h3>
+
+<p>The <code class="language-plaintext highlighter-rouge">inspect</code> inspection property can be queried to list a textual summary of all the transactions
+currently pending for inclusion in the next block(s), as well as the ones that are being scheduled
+for future execution only. This is a method specifically tailored to developers to quickly see the
+transactions in the pool and find any potential issues.</p>
+
+<p>The result is an object with two fields <code class="language-plaintext highlighter-rouge">pending</code> and <code class="language-plaintext highlighter-rouge">queued</code>. Each of these fields are associative
+arrays, in which each entry maps an origin-address to a batch of scheduled transactions. These batches
+themselves are maps associating nonces with transactions summary strings.</p>
+
+<p>Please note, there may be multiple transactions associated with the same account and nonce. This can
+happen if the user broadcast mutliple ones with varying gas allowances (or even complerely different
+transactions).</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center">Go</td>
+      <td><code class="language-plaintext highlighter-rouge">txpool.Inspect() (map[string]map[string]map[string]string)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: center">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">txpool.inspect</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: center">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "txpool_inspect"}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="example-1">Example</h4>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&gt;</span> <span class="nx">txpool</span><span class="p">.</span><span class="nx">inspect</span>
+<span class="p">{</span>
+  <span class="nl">pending</span><span class="p">:</span> <span class="p">{</span>
+    <span class="mh">0x26588a9301b0428d95e6fc3a5024fce8bec12d51</span><span class="p">:</span> <span class="p">{</span>
+      <span class="mi">31813</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x3375ee30428b2a71c428afa5e89e427905f95f7e: 0 wei + 500000 × 20000000000 wei</span><span class="dl">"</span>
+    <span class="p">},</span>
+    <span class="mh">0x2a65aca4d5fc5b5c859090a6c34d164135398226</span><span class="p">:</span> <span class="p">{</span>
+      <span class="mi">563662</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x958c1fa64b34db746925c6f8a3dd81128e40355e: 1051546810000000000 wei + 90000 gas × 20000000000 wei</span><span class="dl">"</span><span class="p">,</span>
+      <span class="mi">563663</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x77517b1491a0299a44d668473411676f94e97e34: 1051190740000000000 wei + 90000 gas × 20000000000 wei</span><span class="dl">"</span><span class="p">,</span>
+      <span class="mi">563664</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x3e2a7fe169c8f8eee251bb00d9fb6d304ce07d3a: 1050828950000000000 wei + 90000 gas × 20000000000 wei</span><span class="dl">"</span><span class="p">,</span>
+      <span class="mi">563665</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0xaf6c4695da477f8c663ea2d8b768ad82cb6a8522: 1050544770000000000 wei + 90000 gas × 20000000000 wei</span><span class="dl">"</span><span class="p">,</span>
+      <span class="mi">563666</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x139b148094c50f4d20b01caf21b85edb711574db: 1048598530000000000 wei + 90000 gas × 20000000000 wei</span><span class="dl">"</span><span class="p">,</span>
+      <span class="mi">563667</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x48b3bd66770b0d1eecefce090dafee36257538ae: 1048367260000000000 wei + 90000 gas × 20000000000 wei</span><span class="dl">"</span><span class="p">,</span>
+      <span class="mi">563668</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x468569500925d53e06dd0993014ad166fd7dd381: 1048126690000000000 wei + 90000 gas × 20000000000 wei</span><span class="dl">"</span><span class="p">,</span>
+      <span class="mi">563669</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x3dcb4c90477a4b8ff7190b79b524773cbe3be661: 1047965690000000000 wei + 90000 gas × 20000000000 wei</span><span class="dl">"</span><span class="p">,</span>
+      <span class="mi">563670</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x6dfef5bc94b031407ffe71ae8076ca0fbf190963: 1047859050000000000 wei + 90000 gas × 20000000000 wei</span><span class="dl">"</span>
+    <span class="p">},</span>
+    <span class="mh">0x9174e688d7de157c5c0583df424eaab2676ac162</span><span class="p">:</span> <span class="p">{</span>
+      <span class="mi">3</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0xbb9bc244d798123fde783fcc1c72d3bb8c189413: 30000000000000000000 wei + 85000 gas × 21000000000 wei</span><span class="dl">"</span>
+    <span class="p">},</span>
+    <span class="mh">0xb18f9d01323e150096650ab989cfecd39d757aec</span><span class="p">:</span> <span class="p">{</span>
+      <span class="mi">777</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0xcd79c72690750f079ae6ab6ccd7e7aedc03c7720: 0 wei + 1000000 gas × 20000000000 wei</span><span class="dl">"</span>
+    <span class="p">},</span>
+    <span class="mh">0xb2916c870cf66967b6510b76c07e9d13a5d23514</span><span class="p">:</span> <span class="p">{</span>
+      <span class="mi">2</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x576f25199d60982a8f31a8dff4da8acb982e6aba: 26000000000000000000 wei + 90000 gas × 20000000000 wei</span><span class="dl">"</span>
+    <span class="p">},</span>
+    <span class="mh">0xbc0ca4f217e052753614d6b019948824d0d8688b</span><span class="p">:</span> <span class="p">{</span>
+      <span class="mi">0</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x2910543af39aba0cd09dbb2d50200b3e800a63d2: 1000000000000000000 wei + 50000 gas × 1171602790622 wei</span><span class="dl">"</span>
+    <span class="p">},</span>
+    <span class="mh">0xea674fdde714fd979de3edf0f56aa9716b898ec8</span><span class="p">:</span> <span class="p">{</span>
+      <span class="mi">70148</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0xe39c55ead9f997f7fa20ebe40fb4649943d7db66: 1000767667434026200 wei + 90000 gas × 20000000000 wei</span><span class="dl">"</span>
+    <span class="p">}</span>
+  <span class="p">},</span>
+  <span class="nx">queued</span><span class="p">:</span> <span class="p">{</span>
+    <span class="mh">0x0f6000de1578619320aba5e392706b131fb1de6f</span><span class="p">:</span> <span class="p">{</span>
+      <span class="mi">6</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x8383534d0bcd0186d326c993031311c0ac0d9b2d: 9000000000000000000 wei + 21000 gas × 20000000000 wei</span><span class="dl">"</span>
+    <span class="p">},</span>
+    <span class="mh">0x5b30608c678e1ac464a8994c3b33e5cdf3497112</span><span class="p">:</span> <span class="p">{</span>
+      <span class="mi">6</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x9773547e27f8303c87089dc42d9288aa2b9d8f06: 50000000000000000000 wei + 90000 gas × 50000000000 wei</span><span class="dl">"</span>
+    <span class="p">},</span>
+    <span class="mh">0x976a3fc5d6f7d259ebfb4cc2ae75115475e9867c</span><span class="p">:</span> <span class="p">{</span>
+      <span class="mi">3</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x346fb27de7e7370008f5da379f74dd49f5f2f80f: 140000000000000000 wei + 90000 gas × 20000000000 wei</span><span class="dl">"</span>
+    <span class="p">},</span>
+    <span class="mh">0x9b11bf0459b0c4b2f87f8cebca4cfc26f294b63a</span><span class="p">:</span> <span class="p">{</span>
+      <span class="mi">2</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x24a461f25ee6a318bdef7f33de634a67bb67ac9d: 17000000000000000000 wei + 90000 gas × 50000000000 wei</span><span class="dl">"</span><span class="p">,</span>
+      <span class="mi">6</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x6368f3f8c2b42435d6c136757382e4a59436a681: 17990000000000000000 wei + 90000 gas × 20000000000 wei</span><span class="dl">"</span><span class="p">,</span>
+      <span class="mi">7</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x6368f3f8c2b42435d6c136757382e4a59436a681: 17900000000000000000 wei + 90000 gas × 20000000000 wei</span><span class="dl">"</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="txpool_status">txpool_status</h3>
+
+<p>The <code class="language-plaintext highlighter-rouge">status</code> inspection property can be queried for the number of transactions currently pending for
+inclusion in the next block(s), as well as the ones that are being scheduled for future execution only.</p>
+
+<p>The result is an object with two fields <code class="language-plaintext highlighter-rouge">pending</code> and <code class="language-plaintext highlighter-rouge">queued</code>, each of which is a counter representing
+the number of transactions in that particular state.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Go</td>
+      <td><code class="language-plaintext highlighter-rouge">txpool.Status() (map[string]*rpc.HexNumber)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">txpool.status</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "txpool_status"}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h4 id="example-2">Example</h4>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&gt;</span> <span class="nx">txpool</span><span class="p">.</span><span class="nx">status</span>
+<span class="p">{</span>
+  <span class="nl">pending</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+  <span class="nx">queued</span><span class="p">:</span> <span class="mi">7</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+    </div>

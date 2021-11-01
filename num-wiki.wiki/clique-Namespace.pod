@@ -1,0 +1,234 @@
+ <div class="col-md-9" id="content">
+
+      
+      <p>The <code class="language-plaintext highlighter-rouge">clique</code> API provides access to the state of the clique consensus engine. You can use
+this API to manage signer votes and to check the health of a private network.</p>
+
+<ul id="markdown-toc">
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-clique#clique_getsnapshot" id="markdown-toc-clique_getsnapshot">clique_getSnapshot</a></li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-clique#clique_getsnapshotathash" id="markdown-toc-clique_getsnapshotathash">clique_getSnapshotAtHash</a></li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-clique#clique_getsigners" id="markdown-toc-clique_getsigners">clique_getSigners</a></li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-clique#clique_proposals" id="markdown-toc-clique_proposals">clique_proposals</a></li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-clique#clique_propose" id="markdown-toc-clique_propose">clique_propose</a></li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-clique#clique_discard" id="markdown-toc-clique_discard">clique_discard</a></li>
+  <li><a href="https://geth.ethereum.org/docs/rpc/ns-clique#clique_status" id="markdown-toc-clique_status">clique_status</a></li>
+</ul>
+
+<h3 id="clique_getsnapshot">clique_getSnapshot</h3>
+
+<p>Retrieves a snapshot of all clique state at a given block.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">clique.getSnapshot(blockNumber)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "clique_getSnapshot", "params": [blockNumber]}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Example:</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">&gt;</span> <span class="nx">clique</span><span class="p">.</span><span class="nx">getSnapshot</span><span class="p">(</span><span class="mi">5463755</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="nl">hash</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x018194fc50ca62d973e2f85cffef1e6811278ffd2040a4460537f8dbec3d5efc</span><span class="dl">"</span><span class="p">,</span>
+  <span class="nx">number</span><span class="p">:</span> <span class="mi">5463755</span><span class="p">,</span>
+  <span class="nx">recents</span><span class="p">:</span> <span class="p">{</span>
+    <span class="mi">5463752</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x42eb768f2244c8811c63729a21a3569731535f06</span><span class="dl">"</span><span class="p">,</span>
+    <span class="mi">5463753</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x6635f83421bf059cd8111f180f0727128685bae4</span><span class="dl">"</span><span class="p">,</span>
+    <span class="mi">5463754</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0x7ffc57839b00206d1ad20c69a1981b489f772031</span><span class="dl">"</span><span class="p">,</span>
+    <span class="mi">5463755</span><span class="p">:</span> <span class="dl">"</span><span class="s2">0xb279182d99e65703f0076e4812653aab85fca0f0</span><span class="dl">"</span>
+  <span class="p">},</span>
+  <span class="nx">signers</span><span class="p">:</span> <span class="p">{</span>
+    <span class="mh">0x42eb768f2244c8811c63729a21a3569731535f06</span><span class="p">:</span> <span class="p">{},</span>
+    <span class="mh">0x6635f83421bf059cd8111f180f0727128685bae4</span><span class="p">:</span> <span class="p">{},</span>
+    <span class="mh">0x7ffc57839b00206d1ad20c69a1981b489f772031</span><span class="p">:</span> <span class="p">{},</span>
+    <span class="mh">0xb279182d99e65703f0076e4812653aab85fca0f0</span><span class="p">:</span> <span class="p">{},</span>
+    <span class="mh">0xd6ae8250b8348c94847280928c79fb3b63ca453e</span><span class="p">:</span> <span class="p">{},</span>
+    <span class="mh">0xda35dee8eddeaa556e4c26268463e26fb91ff74f</span><span class="p">:</span> <span class="p">{},</span>
+    <span class="mh">0xfc18cbc391de84dbd87db83b20935d3e89f5dd91</span><span class="p">:</span> <span class="p">{}</span>
+  <span class="p">},</span>
+  <span class="nx">tally</span><span class="p">:</span> <span class="p">{},</span>
+  <span class="nx">votes</span><span class="p">:</span> <span class="p">[]</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="clique_getsnapshotathash">clique_getSnapshotAtHash</h3>
+
+<p>Retrieves the state snapshot at a given block.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">clique.getSnapshotAtHash(blockHash)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "clique_getSnapshotAtHash", "params": [blockHash]}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="clique_getsigners">clique_getSigners</h3>
+
+<p>Retrieves the list of authorized signers at the specified block.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">clique.getSigners(blockNumber)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "clique_getSigners", "params": [blockNumber]}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="clique_proposals">clique_proposals</h3>
+
+<p>Returns the current proposals the node is voting on.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">clique.proposals()</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "clique_proposals", "params": []}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="clique_propose">clique_propose</h3>
+
+<p>Adds a new authorization proposal that the signer will attempt to push through. If the
+<code class="language-plaintext highlighter-rouge">auth</code> parameter is true, the local signer votes for the given address to be included in
+the set of authorized signers. With <code class="language-plaintext highlighter-rouge">auth</code> set to <code class="language-plaintext highlighter-rouge">false</code>, the vote is against the
+address.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">clique.propose(address, auth)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "clique_propose", "params": [address, auth]}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="clique_discard">clique_discard</h3>
+
+<p>This method drops a currently running proposal. The signer will not cast
+further votes (either for or against) the address.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">clique.discard(address)</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "clique_discard", "params": [address]}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="clique_status">clique_status</h3>
+
+<p>This is a debugging method which returns statistics about signer activity
+for the last 64 blocks. The returned object contains the following fields:</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">inturnPercent</code>: percentage of blocks signed in-turn</li>
+  <li><code class="language-plaintext highlighter-rouge">sealerActivity</code>: object containing signer addresses and the number
+of blocks signed by them</li>
+  <li><code class="language-plaintext highlighter-rouge">numBlocks</code>: number of blocks analyzed</li>
+</ul>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Client</th>
+      <th>Method invocation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Console</td>
+      <td><code class="language-plaintext highlighter-rouge">clique.status()</code></td>
+    </tr>
+    <tr>
+      <td style="text-align: left">RPC</td>
+      <td><code class="language-plaintext highlighter-rouge">{"method": "clique_status", "params": []}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Example:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&gt; clique.status()
+{
+  inturnPercent: 100,
+  numBlocks: 64,
+  sealerActivity: {
+    0x42eb768f2244c8811c63729a21a3569731535f06: 9,
+    0x6635f83421bf059cd8111f180f0727128685bae4: 9,
+    0x7ffc57839b00206d1ad20c69a1981b489f772031: 9,
+    0xb279182d99e65703f0076e4812653aab85fca0f0: 10,
+    0xd6ae8250b8348c94847280928c79fb3b63ca453e: 9,
+    0xda35dee8eddeaa556e4c26268463e26fb91ff74f: 9,
+    0xfc18cbc391de84dbd87db83b20935d3e89f5dd91: 9
+  }
+}
+</code></pre></div></div>
+
+    </div>
